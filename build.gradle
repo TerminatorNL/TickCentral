@@ -78,7 +78,8 @@ processResources {
 
 jar {
     manifest.attributes(
-            'FMLCorePluginContainsFMLMod': 'true',
+            'FMLCorePluginContainsFMLMod': 'false',
+            'FMLCorePlugin': 'com.github.terminatornl.tickcentral.TickCentral',
             'TweakClass': 'com.github.terminatornl.tickcentral.asm.Tweaker',
             'TweakOrder': '0',
             'ForceLoadAsMod': 'true'

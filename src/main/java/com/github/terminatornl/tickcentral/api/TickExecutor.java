@@ -12,16 +12,16 @@ import java.util.Random;
 
 public interface TickExecutor {
 
-	default void redirectRandomTick(Block block, World worldIn, BlockPos pos, IBlockState state, Random random){
-		block.randomTick(worldIn, pos, state, random);
-	}
-
 	default void redirectUpdateTick(Block block, World worldIn, BlockPos pos, IBlockState state, Random random){
-		block.updateTick(worldIn, pos, state, random);
+		TickHub.trueUpdateTick(block, worldIn, pos, state, random);
 	}
 
-	default void update(ITickable tickable){
-		tickable.update();
+	default void redirectRandomTick(Block block, World worldIn, BlockPos pos, IBlockState state, Random random){
+		TickHub.trueRandomTick(block, worldIn, pos, state, random);
+	}
+
+	default void redirectUpdate(ITickable tickable){
+		TickHub.trueUpdate(tickable);
 	}
 
 }

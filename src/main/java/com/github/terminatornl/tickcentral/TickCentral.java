@@ -1,31 +1,26 @@
 package com.github.terminatornl.tickcentral;
 
 import com.github.terminatornl.tickcentral.asm.Transformer;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.Mod.EventHandler;
-import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
+import net.minecraft.block.BlockBush;
+import net.minecraftforge.fml.relauncher.IFMLCallHook;
 import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin;
+import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nullable;
 import java.util.Map;
 
-@Mod(modid = TickCentral.MODID, name = TickCentral.NAME, version = TickCentral.VERSION)
-public class TickCentral implements IFMLLoadingPlugin {
-    public static final String MODID = "tickcentral";
+@IFMLLoadingPlugin.TransformerExclusions({
+        "com.github.terminatornl.tickcentral.asm",
+        "tickcentral.api." /* Intended for dependant mods, not here. */
+})
+@IFMLLoadingPlugin.MCVersion("1.12.2")
+@IFMLLoadingPlugin.Name(TickCentral.NAME)
+@IFMLLoadingPlugin.SortingIndex(0)
+public class TickCentral implements IFMLLoadingPlugin, IFMLCallHook {
     public static final String NAME = "TickCentral";
-    public static final String VERSION = "1.0";
-
-    private static Logger logger;
-    private Map<String, Object> data;
-
-    @EventHandler
-    public void preInit(FMLPreInitializationEvent event)
-    {
-        logger = event.getModLog();
-
-        //TODO TEST HERE
-    }
+    public static final Logger LOGGER = LogManager.getLogger(NAME);
+    public static Map<String, Object> FML_DATA;
 
     /**
      * Return a list of classes that implements the IClassTransformer interface
@@ -37,33 +32,15 @@ public class TickCentral implements IFMLLoadingPlugin {
         return new String[]{Transformer.class.getName()};
     }
 
-    /**
-     * Return a class name that implements "ModContainer" for injection into the mod list
-     * The "getName" function should return a name that other mods can, if need be,
-     * depend on.
-     * Trivially, this modcontainer will be loaded before all regular mod containers,
-     * which means it will be forced to be "immutable" - not susceptible to normal
-     * sorting behaviour.
-     * All other mod behaviours are available however- this container can receive and handle
-     * normal loading events
-     */
     @Override
     public String getModContainerClass() {
-        return getClass().getName();
+        return null;
     }
 
-    /**
-     * Return the class name of an implementor of "IFMLCallHook", that will be run, in the
-     * main thread, to perform any additional setup this coremod may require. It will be
-     * run <strong>prior</strong> to Minecraft starting, so it CANNOT operate on minecraft
-     * itself. The game will deliberately crash if this code is detected to trigger a
-     * minecraft class loading
-     * TODO: implement crash ;)
-     */
     @Nullable
     @Override
     public String getSetupClass() {
-        return null;
+        return getClass().getName();
     }
 
     /**
@@ -77,7 +54,7 @@ public class TickCentral implements IFMLLoadingPlugin {
      */
     @Override
     public void injectData(Map<String, Object> data) {
-        this.data = data;
+        FML_DATA = data;
     }
 
     /**
@@ -88,6 +65,18 @@ public class TickCentral implements IFMLLoadingPlugin {
      */
     @Override
     public String getAccessTransformerClass() {
+        return null;
+    }
+
+    /**
+     * Computes a result, or throws an exception if unable to do so.
+     *
+     * @return computed result
+     * @throws Exception if unable to compute a result
+     */
+    @Override
+    public Void call() throws Exception {
+        //TODO: LOAD CONFIG FROM OTHER MODS
         return null;
     }
 }
