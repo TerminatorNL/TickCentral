@@ -1,12 +1,12 @@
 package com.github.terminatornl.tickcentral;
 
-import com.github.terminatornl.tickcentral.asm.APITransformer;
+import com.github.terminatornl.tickcentral.asm.HubAPITransformer;
 import com.github.terminatornl.tickcentral.asm.BlockTransformer;
 import com.github.terminatornl.tickcentral.asm.ITickableTransformer;
+import com.github.terminatornl.tickcentral.asm.TrueITickableTransformer;
+import com.github.terminatornl.tickcentral.core.Config;
+import com.github.terminatornl.tickcentral.core.ModContainer;
 import net.minecraftforge.fml.common.DummyModContainer;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.IFMLCallHook;
 import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin;
 import org.apache.logging.log4j.LogManager;
@@ -18,8 +18,8 @@ import java.util.Map;
 @IFMLLoadingPlugin.TransformerExclusions({
 		"com.github.terminatornl.tickcentral.asm",
 		"com.github.terminatornl.tickcentral.TickCentral",
-		"com.github.terminatornl.tickcentral.Config",
-		"com.github.terminatornl.tickcentral.ModContainer",
+		"com.github.terminatornl.tickcentral.core.Config",
+		"com.github.terminatornl.tickcentral.core.ModContainer",
 		"tickcentral.api." /* Intended for dependant mods, not here. */
 })
 @IFMLLoadingPlugin.Name(TickCentral.NAME)
@@ -45,9 +45,10 @@ public class TickCentral extends DummyModContainer implements IFMLLoadingPlugin,
 	@Override
 	public String[] getASMTransformerClass() {
 		return new String[]{
-				ITickableTransformer.class.getName(),
 				BlockTransformer.class.getName(),
-				APITransformer.class.getName()
+				ITickableTransformer.class.getName(),
+				TrueITickableTransformer.class.getName(),
+				HubAPITransformer.class.getName()
 		};
 	}
 

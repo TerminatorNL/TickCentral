@@ -1,16 +1,13 @@
-package com.github.terminatornl.tickcentral;
+package com.github.terminatornl.tickcentral.core;
 
-import com.google.common.base.VerifyException;
+import com.github.terminatornl.tickcentral.TickCentral;
+import com.github.terminatornl.tickcentral.core.TrueITickable;
+import com.github.terminatornl.tickcentral.core.Verification;
 import com.google.common.collect.ImmutableList;
 import com.google.common.eventbus.EventBus;
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.LoadController;
 import net.minecraftforge.fml.common.MetadataCollection;
-import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.ModMetadata;
-import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
-import net.minecraftforge.fml.common.event.FMLServerAboutToStartEvent;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.versioning.ArtifactVersion;
 import net.minecraftforge.fml.common.versioning.DefaultArtifactVersion;
 import net.minecraftforge.fml.common.versioning.InvalidVersionSpecificationException;
@@ -26,6 +23,12 @@ public class ModContainer implements net.minecraftforge.fml.common.ModContainer 
 
 	@Override
 	public boolean registerBus(EventBus bus, LoadController controller) {
+		new TrueITickable(){
+			@Override
+			public void update() {
+				TickCentral.LOGGER.info("Update");
+			}
+		}.update();
 		Verification.EarlyCheck();
 		return true;
 	}

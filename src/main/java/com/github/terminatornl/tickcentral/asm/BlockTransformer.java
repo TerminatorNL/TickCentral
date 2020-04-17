@@ -1,8 +1,6 @@
 package com.github.terminatornl.tickcentral.asm;
 
-import com.github.terminatornl.tickcentral.Config;
 import com.github.terminatornl.tickcentral.TickCentral;
-import net.minecraft.block.Block;
 import net.minecraft.launchwrapper.IClassTransformer;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import org.objectweb.asm.ClassReader;

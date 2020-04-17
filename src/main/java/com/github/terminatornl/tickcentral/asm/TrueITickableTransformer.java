@@ -8,12 +8,12 @@ import org.objectweb.asm.tree.*;
 
 import java.util.Iterator;
 
-public class APITransformer implements IClassTransformer {
+public class TrueITickableTransformer implements IClassTransformer {
 
 
 	@Override
 	public byte[] transform(String name, String transformedName, byte[] basicClass) {
-		if (basicClass == null || transformedName.equals("com.github.terminatornl.tickcentral.api.TickHub") == false) {
+		if (basicClass == null || transformedName.equals("com.github.terminatornl.tickcentral.core.TrueITickable") == false) {
 			return basicClass;
 		}
 		ClassReader reader = new ClassReader(basicClass);
@@ -21,24 +21,16 @@ public class APITransformer implements IClassTransformer {
 		reader.accept(classNode, 0);
 
 		for (MethodNode method : classNode.methods) {
-			switch (method.name) {
-				case "trueRandomTick":
-					APITransformer.convertInstruction(BlockTransformer.TRUE_RANDOM_TICK_NAME, method.instructions);
-					break;
-				case "trueUpdateTick":
-					APITransformer.convertInstruction(BlockTransformer.TRUE_UPDATE_TICK_NAME, method.instructions);
-					break;
-				case "trueUpdate":
-					APITransformer.convertInstruction(ITickableTransformer.TRUE_ITICKABLE_UPDATE, method.instructions);
-					break;
-			}
+			method.name = ITickableTransformer.UPDATE_METHOD.getKey();
+			method.desc = ITickableTransformer.UPDATE_METHOD.getValue();
+			convertInstruction(ITickableTransformer.TRUE_ITICKABLE_UPDATE, "com/github/terminatornl/tickcentral/core/TrueITickable", method.instructions);
 		}
 		ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
 		classNode.accept(writer);
 		return writer.toByteArray();
 	}
 
-	public static void convertInstruction(String target, InsnList instructions) {
+	public static void convertInstruction(String target, String owner, InsnList instructions) {
 		Iterator<AbstractInsnNode> iterator = instructions.iterator();
 		while(iterator.hasNext()){
 			AbstractInsnNode node = iterator.next();
@@ -50,8 +42,8 @@ public class APITransformer implements IClassTransformer {
 				case Opcodes.INVOKEVIRTUAL:
 					MethodInsnNode methodNode = (MethodInsnNode) node;
 					methodNode.name = target;
+					methodNode.owner = owner;
 			}
 		}
 	}
-
 }
