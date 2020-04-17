@@ -3,7 +3,6 @@ package com.github.terminatornl.tickcentral.asm.template;
 import com.github.terminatornl.tickcentral.api.TickHub;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.util.ITickable;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
@@ -24,20 +23,20 @@ public class Replacements {
 
 		@Override
 		public void updateTick(World worldIn, BlockPos pos, IBlockState state, Random random){
-			TickHub.EXECUTOR.redirectUpdateTick(this, worldIn, pos, state, random);
+			TickHub.INTERCEPTOR.redirectUpdateTick(this, worldIn, pos, state, random);
 		}
 
 		@Override
 		@ParametersAreNonnullByDefault
 		public void randomTick(World worldIn, BlockPos pos, IBlockState state, Random random){
-			TickHub.EXECUTOR.redirectRandomTick(this, worldIn, pos, state, random);
+			TickHub.INTERCEPTOR.redirectRandomTick(this, worldIn, pos, state, random);
 		}
 	}
 
 	public static abstract class ITickable implements net.minecraft.util.ITickable {
 		@Override
 		public void update(){
-			TickHub.EXECUTOR.redirectUpdate(this);
+			TickHub.INTERCEPTOR.redirectUpdate(this);
 		}
 	}
 }

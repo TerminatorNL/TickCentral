@@ -10,7 +10,7 @@ import net.minecraft.world.World;
 
 import java.util.Random;
 
-public interface TickExecutor {
+public interface TickInterceptor {
 
 	default void redirectUpdateTick(Block block, World worldIn, BlockPos pos, IBlockState state, Random random){
 		TickHub.trueUpdateTick(block, worldIn, pos, state, random);

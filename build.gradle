@@ -12,8 +12,8 @@ apply plugin: 'net.minecraftforge.gradle.forge'
 
 
 version = "1.0"
-group = "com.yourname.modid" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
-archivesBaseName = "modid"
+group = "com.github.terminatornl.tickcentral" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
+archivesBaseName = "TickCentral"
 
 sourceCompatibility = targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
 compileJava {
@@ -21,6 +21,7 @@ compileJava {
 }
 
 minecraft {
+    ///home/predator/.gradle/caches/minecraft/de/oceanlabs/mcp/mcp
     version = "1.12.2-14.23.5.2838"
     runDir = "run"
     
@@ -76,12 +77,19 @@ processResources {
     }
 }
 
+task install {
+    delete fileTree('run_server_obf/mods') {
+        include "$archivesBaseName*"
+    }
+    println("Copying " + jar.archivePath + " into run_server_obf/mods")
+    copy {
+        from jar.archivePath
+        into "run_server_obf/mods"
+    }
+}
+
 jar {
     manifest.attributes(
-            'FMLCorePluginContainsFMLMod': 'false',
-            'FMLCorePlugin': 'com.github.terminatornl.tickcentral.TickCentral',
-            'TweakClass': 'com.github.terminatornl.tickcentral.asm.Tweaker',
-            'TweakOrder': '0',
-            'ForceLoadAsMod': 'true'
+        'FMLCorePlugin': 'com.github.terminatornl.tickcentral.TickCentral'
     )
 }
