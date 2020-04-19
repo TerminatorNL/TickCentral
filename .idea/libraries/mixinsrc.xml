@@ -1,9 +1,0 @@
-<component name="libraryTable">
-  <library name="mixinsrc">
-    <CLASSES />
-    <JAVADOC />
-    <SOURCES>
-      <root url="jar://$PROJECT_DIR$/mixinsrc.jar!/" />
-    </SOURCES>
-  </library>
-</component>

@@ -76,7 +76,9 @@ public class ITickableTransformer implements IClassTransformer {
 			}
 
 
-			TickCentral.LOGGER.info("ITickable found: " + className + " (" + transformedName + ")");
+			if(TickCentral.CONFIG.DEBUG){
+				TickCentral.LOGGER.info("ITickable found: " + className + " (" + transformedName + ")");
+			}
 
 
 			/* THE INTERFACE ITSELF */

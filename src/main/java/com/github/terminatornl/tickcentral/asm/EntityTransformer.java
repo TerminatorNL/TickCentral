@@ -45,7 +45,11 @@ public class EntityTransformer implements IClassTransformer {
 			}
 
 			if (IS_SUPERTYPE_OF_ENTITY) {
-				TickCentral.LOGGER.info("Entity found: " + className + " (" + transformedName + ")");
+
+				if(TickCentral.CONFIG.DEBUG){
+					TickCentral.LOGGER.info("Entity found: " + className + " (" + transformedName + ")");
+				}
+
 
 				ClassNode classNode = new ClassNode();
 				reader.accept(classNode, 0);

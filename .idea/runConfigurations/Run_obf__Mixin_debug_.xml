@@ -7,7 +7,6 @@
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/run_server_obf/" />
     <option name="ALTERNATIVE_JRE_PATH" />
     <method v="2">
-      <option name="RunConfigurationTask" enabled="true" run_configuration_name="TickCentral [build]" run_configuration_type="GradleRunConfiguration" />
       <option name="RunConfigurationTask" enabled="true" run_configuration_name="TickCentral [install]" run_configuration_type="GradleRunConfiguration" />
     </method>
   </configuration>

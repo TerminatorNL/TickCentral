@@ -48,7 +48,9 @@ public class BlockTransformer implements IClassTransformer {
 			}
 
 			if (IS_SUPERTYPE_OF_BLOCK) {
-				TickCentral.LOGGER.info("Block found: " + className + " (" + transformedName + ")");
+				if(TickCentral.CONFIG.DEBUG){
+					TickCentral.LOGGER.info("Block found: " + className + " (" + transformedName + ")");
+				}
 
 				ClassNode classNode = new ClassNode();
 				reader.accept(classNode, 0);

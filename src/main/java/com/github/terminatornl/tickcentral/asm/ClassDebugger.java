@@ -16,7 +16,7 @@ import java.nio.file.StandardOpenOption;
 
 public class ClassDebugger {
 
-	public static File DEBUG_FOLDER = new File(".",TickCentral.NAME);
+	public static File DEBUG_FOLDER = new File(TickCentral.CONFIG.FOLDER, "DEBUG");
 	static {
 		try {
 			if(DEBUG_FOLDER.exists()){
