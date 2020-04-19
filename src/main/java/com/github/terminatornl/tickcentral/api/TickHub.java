@@ -2,6 +2,8 @@ package com.github.terminatornl.tickcentral.api;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.item.EntityItem;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -45,5 +47,13 @@ public class TickHub {
 	 */
 	public static void trueUpdate(ITickable tickable){
 		tickable.update();
+	}
+
+	/**
+	 * Will be populated with the true update method using ASM
+	 * @param entity the entity
+	 */
+	public static void trueOnUpdate(Entity entity){
+		entity.onUpdate();
 	}
 }

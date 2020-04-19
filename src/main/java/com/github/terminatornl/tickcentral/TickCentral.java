@@ -1,12 +1,12 @@
 package com.github.terminatornl.tickcentral;
 
+import com.github.terminatornl.tickcentral.asm.EntityTransformer;
 import com.github.terminatornl.tickcentral.asm.HubAPITransformer;
 import com.github.terminatornl.tickcentral.asm.BlockTransformer;
 import com.github.terminatornl.tickcentral.asm.ITickableTransformer;
-import com.github.terminatornl.tickcentral.asm.TrueITickableTransformer;
+import com.github.terminatornl.tickcentral.asm.workarounds.Compatibility;
 import com.github.terminatornl.tickcentral.core.Config;
-import com.github.terminatornl.tickcentral.core.ModContainer;
-import net.minecraftforge.fml.common.DummyModContainer;
+import net.minecraftforge.fml.common.asm.transformers.ModAPITransformer;
 import net.minecraftforge.fml.relauncher.IFMLCallHook;
 import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin;
 import org.apache.logging.log4j.LogManager;
@@ -17,14 +17,19 @@ import java.util.Map;
 
 @IFMLLoadingPlugin.TransformerExclusions({
 		"com.github.terminatornl.tickcentral.asm",
+		"$wrapper.com.github.terminatornl.tickcentral.asm.",
 		"com.github.terminatornl.tickcentral.TickCentral",
+		"$wrapper.com.github.terminatornl.tickcentral.TickCentral",
 		"com.github.terminatornl.tickcentral.core.Config",
+		"$wrapper.com.github.terminatornl.tickcentral.core.Config",
 		"com.github.terminatornl.tickcentral.core.ModContainer",
-		"tickcentral.api." /* Intended for dependant mods, not here. */
+		"$wrapper.com.github.terminatornl.tickcentral.core.ModContainer",
+		"tickcentral.api.", 			 /* Intended for dependant mods, not here. */
+		"$wrapper.tickcentral.api."		 /* Intended for dependant mods, not here. */
 })
 @IFMLLoadingPlugin.Name(TickCentral.NAME)
-@IFMLLoadingPlugin.SortingIndex(0)
-public class TickCentral extends DummyModContainer implements IFMLLoadingPlugin, IFMLCallHook {
+@IFMLLoadingPlugin.SortingIndex(1001)
+public class TickCentral implements IFMLLoadingPlugin, IFMLCallHook {
 	public static final Config CONFIG = new Config();
 	public static final String NAME = "TickCentral";
 	public static final String MODID = "tickcentral";
@@ -35,6 +40,7 @@ public class TickCentral extends DummyModContainer implements IFMLLoadingPlugin,
 
 	public TickCentral() {
 		INSTANCE = this;
+		LOGGER.info("TickCentral is initialized! Please ignore the warning about the missing MCVersion annotation, as this mod is intended to last across many Minecraft versions!");
 	}
 
 	/**
@@ -47,14 +53,24 @@ public class TickCentral extends DummyModContainer implements IFMLLoadingPlugin,
 		return new String[]{
 				BlockTransformer.class.getName(),
 				ITickableTransformer.class.getName(),
-				TrueITickableTransformer.class.getName(),
+				EntityTransformer.class.getName(),
 				HubAPITransformer.class.getName()
+		};
+	}
+
+	public Class<?>[] getPrioritizedASMTransformers(){
+		return new Class<?>[]{
+				BlockTransformer.class,
+				ITickableTransformer.class,
+				EntityTransformer.class,
+				HubAPITransformer.class,
+				ModAPITransformer.class
 		};
 	}
 
 	@Override
 	public String getModContainerClass() {
-		return ModContainer.class.getName();
+		return "com.github.terminatornl.tickcentral.core.ModContainer";
 	}
 
 	@Nullable
@@ -96,12 +112,10 @@ public class TickCentral extends DummyModContainer implements IFMLLoadingPlugin,
 	 */
 	@Override
 	public Void call() throws Exception {
+		Compatibility.FixTransformerOrdering();
+		//TickCentral.LOGGER.info("Loading class: " + ITickable.class.getName());
+		//TickCentral.LOGGER.info("Loading class: " + Block.class.getName());
 		return null;
 	}
-
-	@Override
-	public String getModId() {
-		return MODID;
-	}
-
 }
+

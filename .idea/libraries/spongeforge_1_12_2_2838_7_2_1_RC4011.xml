@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="spongeforge-1.12.2-2838-7.2.1-RC4011">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/run_server_obf/mods/spongeforge-1.12.2-2838-7.2.1-RC4011.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/spongeforge-1.12.2-2838-7.2.1-RC4011-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

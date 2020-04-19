@@ -58,16 +58,6 @@ public class ReverseCallingMethodVisitor extends ClassVisitor {
 				}
 
 
-
-				/*
-				if (opcode == Opcodes.INVOKESTATIC && owner.equals("java/lang/System") && name.equals("exit") && desc.equals("(I)V")) {
-
-					opcode = Opcodes.INVOKESTATIC;
-					owner = CallMethodVisitor.callbackOwner;
-					name = "runtimeHaltCalled";
-					desc = "(Ljava/lang/Runtime;I)V";
-				}*/
-
 				super.visitMethodInsn(opcode, owner, name, desc, isIntf);
 			}
 		};

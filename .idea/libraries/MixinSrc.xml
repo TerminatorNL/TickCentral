@@ -1,0 +1,17 @@
+<component name="libraryTable">
+  <library name="MixinSrc">
+    <CLASSES />
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/MixinSRC.jar!/agent/java" />
+      <root url="jar://$PROJECT_DIR$/MixinSRC.jar!/ap/java" />
+      <root url="jar://$PROJECT_DIR$/MixinSRC.jar!/bridge/java" />
+      <root url="jar://$PROJECT_DIR$/MixinSRC.jar!/example/java" />
+      <root url="jar://$PROJECT_DIR$/MixinSRC.jar!/fernflower/java" />
+      <root url="jar://$PROJECT_DIR$/MixinSRC.jar!/launchwrapper/java" />
+      <root url="jar://$PROJECT_DIR$/MixinSRC.jar!/legacy/java" />
+      <root url="jar://$PROJECT_DIR$/MixinSRC.jar!/main/java" />
+      <root url="jar://$PROJECT_DIR$/MixinSRC.jar!/modlauncher/java" />
+    </SOURCES>
+  </library>
+</component>

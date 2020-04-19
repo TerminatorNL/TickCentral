@@ -1,10 +1,16 @@
 package com.github.terminatornl.tickcentral.core;
 
 import com.github.terminatornl.tickcentral.TickCentral;
-import com.github.terminatornl.tickcentral.core.TrueITickable;
-import com.github.terminatornl.tickcentral.core.Verification;
+import com.github.terminatornl.tickcentral.api.TickHub;
+import com.github.terminatornl.tickcentral.api.TickInterceptor;
 import com.google.common.collect.ImmutableList;
 import com.google.common.eventbus.EventBus;
+import net.minecraft.block.Block;
+import net.minecraft.block.state.IBlockState;
+import net.minecraft.entity.Entity;
+import net.minecraft.util.ITickable;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
 import net.minecraftforge.fml.common.LoadController;
 import net.minecraftforge.fml.common.MetadataCollection;
 import net.minecraftforge.fml.common.ModMetadata;
@@ -19,18 +25,98 @@ import java.net.URL;
 import java.security.cert.Certificate;
 import java.util.*;
 
-public class ModContainer implements net.minecraftforge.fml.common.ModContainer {
+public class ModContainer implements net.minecraftforge.fml.common.ModContainer, TickInterceptor {
 
 	@Override
 	public boolean registerBus(EventBus bus, LoadController controller) {
-		new TrueITickable(){
-			@Override
-			public void update() {
-				TickCentral.LOGGER.info("Update");
-			}
-		}.update();
-		Verification.EarlyCheck();
+		BlockVerification blockVerification = new BlockVerification();
+		TickCentral.LOGGER.info("Testing if transformations have been applied...");
+
+		TickInterceptor origionalExecutor = TickHub.INTERCEPTOR;
+		TickHub.INTERCEPTOR = this;
+		blockVerification.updateTick(null, null, null, null);
+		blockVerification.randomTick(null, null, null, null);
+		blockVerification.update();
+		blockVerification.KILL_MODE = false;
+		blockVerification.ACTIVATED = false;
+		try {
+			TickHub.trueUpdateTick(blockVerification, null, null, null, null);
+		} catch (NoSuchMethodError e) {
+			TickCentral.LOGGER.fatal("Normal block updates: TrueTick-NOT OKAY!", e);
+			BlockVerification.AbortServer();
+		}
+		if (blockVerification.ACTIVATED == false) {
+			TickCentral.LOGGER.fatal("Normal block updates: TrueTick-NOT FIRED");
+			BlockVerification.AbortServer();
+		}
+		blockVerification.ACTIVATED = false;
+		try {
+			TickHub.trueRandomTick(blockVerification, null, null, null, null);
+		} catch (NoSuchMethodError e) {
+			TickCentral.LOGGER.fatal("Random block updates: TrueTick-NOT OKAY!", e);
+			BlockVerification.AbortServer();
+		}
+		if (blockVerification.ACTIVATED == false) {
+			TickCentral.LOGGER.fatal("Random block updates: TrueTick-NOT FIRED");
+			BlockVerification.AbortServer();
+		}
+		blockVerification.ACTIVATED = false;
+		try {
+			TickHub.trueUpdate(blockVerification);
+		} catch (NoSuchMethodError e) {
+			TickCentral.LOGGER.fatal("ITickable updates: TrueTick-NOT OKAY!", e);
+			BlockVerification.AbortServer();
+		}
+		if (blockVerification.ACTIVATED == false) {
+			TickCentral.LOGGER.fatal("ITickable updates: TrueTick-NOT FIRED");
+			BlockVerification.AbortServer();
+		}
+		blockVerification.ACTIVATED = false;
+		blockVerification.callInternally();
+
+
+
+		EntityVerification entityVerification = new EntityVerification();
+		TickHub.INTERCEPTOR = this;
+		entityVerification.onUpdate();
+		entityVerification.KILL_MODE = false;
+		entityVerification.ACTIVATED = false;
+		try {
+			TickHub.trueOnUpdate(entityVerification);
+		} catch (NoSuchMethodError e) {
+			TickCentral.LOGGER.fatal("Entity updates: TrueTick-NOT OKAY!", e);
+			EntityVerification.AbortServer();
+		}
+		if (entityVerification.ACTIVATED == false) {
+			TickCentral.LOGGER.fatal("Entity updates: TrueTick-NOT FIRED");
+			EntityVerification.AbortServer();
+		}
+		entityVerification.ACTIVATED = false;
+		entityVerification.callInternally();
+
+		TickHub.INTERCEPTOR = origionalExecutor;
+		TickCentral.LOGGER.info("Success!");
 		return true;
+	}
+
+	@Override
+	public void redirectUpdateTick(Block block, World worldIn, BlockPos pos, IBlockState state, Random random) {
+		TickCentral.LOGGER.info("Normal block updates: Redirection-OK");
+	}
+
+	@Override
+	public void redirectRandomTick(Block block, World worldIn, BlockPos pos, IBlockState state, Random random) {
+		TickCentral.LOGGER.info("Random block updates: Redirection-OK");
+	}
+
+	@Override
+	public void redirectUpdate(ITickable tickable) {
+		TickCentral.LOGGER.info("ITickable updates: Redirection-OK");
+	}
+
+	@Override
+	public void redirectOnUpdate(Entity entity) {
+		TickCentral.LOGGER.info("Entity updates: Redirection-OK");
 	}
 
 	@Override
