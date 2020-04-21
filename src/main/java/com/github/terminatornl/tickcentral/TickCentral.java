@@ -6,6 +6,8 @@ import com.github.terminatornl.tickcentral.asm.BlockTransformer;
 import com.github.terminatornl.tickcentral.asm.ITickableTransformer;
 import com.github.terminatornl.tickcentral.asm.workarounds.Compatibility;
 import com.github.terminatornl.tickcentral.core.Config;
+import com.github.terminatornl.tickcentral.loading.Loader;
+import net.minecraft.launchwrapper.IClassTransformer;
 import net.minecraftforge.fml.common.asm.transformers.ModAPITransformer;
 import net.minecraftforge.fml.relauncher.IFMLCallHook;
 import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin;
@@ -13,19 +15,22 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nullable;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 @IFMLLoadingPlugin.TransformerExclusions({
-		"com.github.terminatornl.tickcentral.asm",
+		"com.github.terminatornl.tickcentral.asm.",
 		"$wrapper.com.github.terminatornl.tickcentral.asm.",
+		"com.github.terminatornl.tickcentral.loading.",
+		"$wrapper.com.github.terminatornl.tickcentral.loading.",
 		"com.github.terminatornl.tickcentral.TickCentral",
 		"$wrapper.com.github.terminatornl.tickcentral.TickCentral",
 		"com.github.terminatornl.tickcentral.core.Config",
 		"$wrapper.com.github.terminatornl.tickcentral.core.Config",
 		"com.github.terminatornl.tickcentral.core.ModContainer",
 		"$wrapper.com.github.terminatornl.tickcentral.core.ModContainer",
-		"tickcentral.api.", 			 /* Intended for dependant mods, not here. */
-		"$wrapper.tickcentral.api."		 /* Intended for dependant mods, not here. */
 })
 @IFMLLoadingPlugin.Name(TickCentral.NAME)
 @IFMLLoadingPlugin.SortingIndex(1001)
@@ -34,13 +39,18 @@ public class TickCentral implements IFMLLoadingPlugin, IFMLCallHook {
 	public static final String NAME = "TickCentral";
 	public static final String MODID = "tickcentral";
 	public static final Logger LOGGER = LogManager.getLogger(NAME);
-	public static final String VERSION = "1.0";
+	public static final String VERSION = "${version}";
+	public static final Loader LOADER = new Loader();
 	public static TickCentral INSTANCE;
 	public static Map<String, Object> FML_DATA;
 
 	public TickCentral() {
+		if(INSTANCE == null){
+			LOGGER.info(TickCentral.NAME + " is initialized! Please ignore the warning about the missing MCVersion annotation, as this mod is intended to last across many Minecraft versions!");
+		}else{
+			LOGGER.debug(TickCentral.NAME + " is re-initialized.");
+		}
 		INSTANCE = this;
-		LOGGER.info("TickCentral is initialized! Please ignore the warning about the missing MCVersion annotation, as this mod is intended to last across many Minecraft versions!");
 	}
 
 	/**
@@ -50,22 +60,26 @@ public class TickCentral implements IFMLLoadingPlugin, IFMLCallHook {
 	 */
 	@Override
 	public String[] getASMTransformerClass() {
-		return new String[]{
-				BlockTransformer.class.getName(),
-				ITickableTransformer.class.getName(),
-				EntityTransformer.class.getName(),
-				HubAPITransformer.class.getName()
-		};
+		List<String> list = LOADER.getAllClassTransformers();
+
+		list.add(BlockTransformer.class.getName());
+		list.add(ITickableTransformer.class.getName());
+		list.add(EntityTransformer.class.getName());
+		list.add(HubAPITransformer.class.getName());
+
+		return list.toArray(new String[0]);
 	}
 
-	public Class<?>[] getPrioritizedASMTransformers(){
-		return new Class<?>[]{
-				BlockTransformer.class,
-				ITickableTransformer.class,
-				EntityTransformer.class,
-				HubAPITransformer.class,
-				ModAPITransformer.class
-		};
+	public Collection<Class<? extends IClassTransformer>> getPrioritizedASMTransformers() {
+		List<Class<? extends IClassTransformer>> list = LOADER.getLastClassTransformersTypes();
+
+		list.add(BlockTransformer.class);
+		list.add(ITickableTransformer.class);
+		list.add(EntityTransformer.class);
+		list.add(HubAPITransformer.class);
+		list.add(ModAPITransformer.class);
+
+		return list;
 	}
 
 	@Override
@@ -76,7 +90,7 @@ public class TickCentral implements IFMLLoadingPlugin, IFMLCallHook {
 	@Nullable
 	@Override
 	public String getSetupClass() {
-		return getClass().getName();
+		return null;
 	}
 
 	/**
@@ -91,6 +105,7 @@ public class TickCentral implements IFMLLoadingPlugin, IFMLCallHook {
 	@Override
 	public void injectData(Map<String, Object> data) {
 		FML_DATA = data;
+		LOADER.distributeInject(FML_DATA);
 	}
 
 	/**
@@ -113,8 +128,7 @@ public class TickCentral implements IFMLLoadingPlugin, IFMLCallHook {
 	@Override
 	public Void call() throws Exception {
 		Compatibility.FixTransformerOrdering();
-		//TickCentral.LOGGER.info("Loading class: " + ITickable.class.getName());
-		//TickCentral.LOGGER.info("Loading class: " + Block.class.getName());
+		LOADER.distributeCalls();
 		return null;
 	}
 }

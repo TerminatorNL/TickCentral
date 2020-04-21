@@ -139,7 +139,7 @@ public class ModContainer implements net.minecraftforge.fml.common.ModContainer,
 	 */
 	@Override
 	public File getSource() {
-		return null;
+		return new File(getClass().getProtectionDomain().getCodeSource().getLocation().getFile());
 	}
 
 	/**
@@ -147,7 +147,13 @@ public class ModContainer implements net.minecraftforge.fml.common.ModContainer,
 	 */
 	@Override
 	public ModMetadata getMetadata() {
-		return null;
+		ModMetadata metadata = new ModMetadata();
+		metadata.name = TickCentral.NAME;
+		metadata.modId = TickCentral.MODID;
+		metadata.authorList = new LinkedList<>();
+		metadata.authorList.add("Terminator_NL");
+		metadata.description = "A coremod which makes transforming classes without mixin easier, regardless if mixin is installed.";
+		return metadata;
 	}
 
 	/**

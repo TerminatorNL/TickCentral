@@ -7,6 +7,7 @@ import net.minecraftforge.fml.common.asm.ASMTransformerWrapper;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 
@@ -34,10 +35,10 @@ public class Compatibility {
 
 	public static class OrderedArrayList extends ArrayList<IClassTransformer>{
 
-		private final Class<?>[] bias;
+		private final Collection<Class<? extends IClassTransformer>> bias;
 		private final Field transformerField;
 
-		public OrderedArrayList(List<IClassTransformer> list, Class<?>[] bias) throws NoSuchFieldException {
+		public OrderedArrayList(List<IClassTransformer> list, Collection<Class<? extends IClassTransformer>> bias) throws NoSuchFieldException {
 			super(list);
 			this.bias = bias;
 			transformerField = ASMTransformerWrapper.TransformerWrapper.class.getDeclaredField("parent");

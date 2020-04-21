@@ -12,12 +12,16 @@ buildscript {
 apply plugin: 'net.minecraftforge.gradle.forge'
 
 
-version = "1.0"
+version = "1.5"
 group = "com.github.terminatornl.tickcentral" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "TickCentral"
 
-if (!project.gradle.startParameter.taskNames.contains("install")) {
-    version = "TEST"
+if (project.gradle.startParameter.taskNames.contains("jar")) {
+    version = "$version-dev"
+}else if (project.gradle.startParameter.taskNames.contains("sign")) {
+    //Version not affected
+}else if (!project.gradle.startParameter.taskNames.contains("install")) {
+    version = "$version-testing"
 }
 
 sourceCompatibility = targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
@@ -30,6 +34,8 @@ minecraft {
     version = "1.12.2-14.23.5.2838"
     runDir = "run"
 
+    replaceIn "TickCentral.java"
+    replace '${version}', project.version
     // the mappings can be changed at any time, and must be in the following format.
     // snapshot_YYYYMMDD   snapshot are built nightly.
     // stable_#            stables are built at the discretion of the MCP team.
@@ -69,6 +75,10 @@ task install << {
     }
 }
 
+task sign << {
+
+}
+
 jar {
     manifest.attributes(
             'FMLCorePlugin': 'com.github.terminatornl.tickcentral.TickCentral'
@@ -77,9 +87,9 @@ jar {
 
 task signJar(type: SignJar, dependsOn: reobfJar) {
     onlyIf {
-        project.gradle.startParameter.taskNames.contains("install")
+        project.gradle.startParameter.taskNames.contains("sign")
     }
-    if (project.gradle.startParameter.taskNames.contains("install")) {
+    if (project.gradle.startParameter.taskNames.contains("sign")) {
 
 
         String password
