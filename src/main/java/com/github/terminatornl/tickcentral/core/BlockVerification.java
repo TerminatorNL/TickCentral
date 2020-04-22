@@ -1,8 +1,8 @@
 package com.github.terminatornl.tickcentral.core;
 
 import com.github.terminatornl.tickcentral.TickCentral;
-import com.github.terminatornl.tickcentral.api.TickInterceptor;
 import com.github.terminatornl.tickcentral.api.TickHub;
+import com.github.terminatornl.tickcentral.api.TickInterceptor;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;

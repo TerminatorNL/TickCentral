@@ -1,8 +1,8 @@
 package com.github.terminatornl.tickcentral;
 
+import com.github.terminatornl.tickcentral.asm.BlockTransformer;
 import com.github.terminatornl.tickcentral.asm.EntityTransformer;
 import com.github.terminatornl.tickcentral.asm.HubAPITransformer;
-import com.github.terminatornl.tickcentral.asm.BlockTransformer;
 import com.github.terminatornl.tickcentral.asm.ITickableTransformer;
 import com.github.terminatornl.tickcentral.asm.workarounds.Compatibility;
 import com.github.terminatornl.tickcentral.core.Config;
@@ -16,7 +16,6 @@ import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -46,11 +45,12 @@ public class TickCentral implements IFMLLoadingPlugin, IFMLCallHook {
 
 	public TickCentral() {
 		if(INSTANCE == null){
+			INSTANCE = this;
+			Compatibility.FixTransformerOrdering();
 			LOGGER.info(TickCentral.NAME + " is initialized! Please ignore the warning about the missing MCVersion annotation, as this mod is intended to last across many Minecraft versions!");
 		}else{
 			LOGGER.debug(TickCentral.NAME + " is re-initialized.");
 		}
-		INSTANCE = this;
 	}
 
 	/**
@@ -127,7 +127,6 @@ public class TickCentral implements IFMLLoadingPlugin, IFMLCallHook {
 	 */
 	@Override
 	public Void call() throws Exception {
-		Compatibility.FixTransformerOrdering();
 		LOADER.distributeCalls();
 		return null;
 	}

@@ -4,7 +4,8 @@ import com.github.terminatornl.tickcentral.TickCentral;
 import net.minecraft.launchwrapper.IClassTransformer;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.tree.*;
+import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.MethodNode;
 
 public class HubAPITransformer implements IClassTransformer {
 

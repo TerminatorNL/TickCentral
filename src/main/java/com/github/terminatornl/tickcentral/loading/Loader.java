@@ -4,9 +4,14 @@ import com.github.terminatornl.tickcentral.TickCentral;
 import com.github.terminatornl.tickcentral.api.TransformerSupplier;
 import net.minecraft.launchwrapper.IClassTransformer;
 import net.minecraft.launchwrapper.LaunchClassLoader;
-import net.minecraftforge.fml.relauncher.FMLLaunchHandler;
+import net.minecraftforge.fml.relauncher.CoreModManager;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.AbstractMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -24,7 +29,7 @@ public class Loader {
 	public Loader(){
 		loader = ((LaunchClassLoader) getClass().getClassLoader());
 		findTransformersInJarFiles();
-		if(FMLLaunchHandler.isDeobfuscatedEnvironment()){
+		if(System.getProperty("net.minecraftforge.gradle.GradleStart.csvDir") != null){
 			findTransformersInDeobfuscatedEnvironment();
 		}
 		suppliers.sort(Map.Entry.comparingByKey());
@@ -75,7 +80,7 @@ public class Loader {
 		if(stream != null){
 			BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
 			try {
-				parseLoadables(reader);
+				parseLoadables(reader, null);
 			} catch (Throwable e) {
 				throw new RuntimeException(e);
 			}
@@ -86,7 +91,7 @@ public class Loader {
 
 	private void findTransformersInJarFiles(){
 		try{
-			String fullPath = Loader.class.getProtectionDomain().getCodeSource().getLocation().getFile();
+			String fullPath = URLDecoder.decode(Loader.class.getProtectionDomain().getCodeSource().getLocation().getFile(), StandardCharsets.UTF_8.name());
 			Pattern pattern = Pattern.compile("^(?:.+:)?(.+)!.*$");
 
 			Matcher matcher = pattern.matcher(fullPath);
@@ -104,7 +109,7 @@ public class Loader {
 
 			/* The mods directory, is a directory... */
 			if(potentialMods == null){
-				throw new IllegalStateException("modsDir.listFiles() returned null!");
+				throw new IllegalStateException("modsDir.listFiles() returned null! Attempted to index: " + modsDirectory);
 			}
 
 			for (File file : potentialMods) {
@@ -112,7 +117,7 @@ public class Loader {
 				ZipEntry transformerEntry = jar.getEntry(TickCentral.NAME + "-loadable.txt");
 				if(transformerEntry != null){
 					BufferedReader reader = new BufferedReader(new InputStreamReader(jar.getInputStream(transformerEntry)));
-					parseLoadables(reader);
+					parseLoadables(reader, file);
 				}
 			}
 		}catch (Throwable e){
@@ -120,20 +125,22 @@ public class Loader {
 		}
 	}
 
-	public void parseLoadables(BufferedReader reader) throws Throwable {
+	public void parseLoadables(BufferedReader reader, File file) throws Throwable {
 		final AtomicReference<Throwable> e = new AtomicReference<>();
 		reader.lines().forEach((line) -> {
-			try{
+			try {
 				String loadable = line.trim();
 				TickCentral.LOGGER.info("Loading: " + loadable);
 				loader.addTransformerExclusion(loadable);
+				loader.addURL(file.getAbsoluteFile().toURI().toURL());
 				Class<?> clazz = Class.forName(loadable, true, loader);
 				Object obj = clazz.newInstance();
-				if(obj instanceof TransformerSupplier){
+				if (obj instanceof TransformerSupplier) {
 					TransformerSupplier transformer = (TransformerSupplier) obj;
+					CoreModManager.getReparseableCoremods().add(file.getName());
 					transformer.onLoad(loader);
-					suppliers.add(new AbstractMap.SimpleEntry<>(transformer.callOrder(),transformer));
-				}else{
+					suppliers.add(new AbstractMap.SimpleEntry<>(transformer.callOrder(), transformer));
+				} else {
 					throw new IllegalArgumentException("Class " + obj.getClass().getName() + " is not an instance of " + TransformerSupplier.class.getName());
 				}
 			}catch (Throwable t){

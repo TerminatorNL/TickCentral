@@ -4,7 +4,6 @@ import com.github.terminatornl.tickcentral.TickCentral;
 import com.github.terminatornl.tickcentral.api.TickHub;
 import com.github.terminatornl.tickcentral.api.TickInterceptor;
 import net.minecraft.block.Block;
-import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.nbt.NBTTagCompound;
