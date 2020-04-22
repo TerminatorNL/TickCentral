@@ -99,32 +99,34 @@ public class ClassSniffer{
 		if(isProtected(superName) == false){
 			byte[] superClass = TickCentral.LOADER.getClassLoader().getClassBytes(FMLDeobfuscatingRemapper.INSTANCE.unmap(superName));
 			if(superClass == null){
-				throw new IOException("Unable to get superclass as resource: " + superName + " (" + FMLDeobfuscatingRemapper.INSTANCE.map(superName) + ") Do you have a broken installation? It is referenced in " + className + " (" + FMLDeobfuscatingRemapper.INSTANCE.map(className) + ")");
-			}
-			ClassReader superReader = new ClassReader(superClass);
-			if(disallowMixinSupers){
-				ClassNode superClassNode = new ClassNode();
-				superReader.accept(superClassNode, 0);
-				if(superClassNode.invisibleAnnotations != null){
-					for (AnnotationNode annotation : superClassNode.invisibleAnnotations) {
-						if(annotation.desc.equals("Lorg/spongepowered/asm/mixin/Mixin;")){
-							return false;
+				TickCentral.LOGGER.warn("Unable to get superclass as resource: " + superName + " (" + FMLDeobfuscatingRemapper.INSTANCE.map(superName) + ") Do you have a broken installation? It is referenced in " + className + " (" + FMLDeobfuscatingRemapper.INSTANCE.map(className) + ")");
+			}else{
+				ClassReader superReader = new ClassReader(superClass);
+				if(disallowMixinSupers){
+					ClassNode superClassNode = new ClassNode();
+					superReader.accept(superClassNode, 0);
+					if(superClassNode.invisibleAnnotations != null){
+						for (AnnotationNode annotation : superClassNode.invisibleAnnotations) {
+							if(annotation.desc.equals("Lorg/spongepowered/asm/mixin/Mixin;")){
+								return false;
+							}
 						}
 					}
 				}
-			}
-			if(isInstanceOf(superReader, obfuscated, disallowMixinSupers)){
-				return true;
+				if(isInstanceOf(superReader, obfuscated, disallowMixinSupers)){
+					return true;
+				}
 			}
 		}
 		for (String iface : reader.getInterfaces()) {
 			if(isProtected(iface) == false){
 				byte[] ifaceData = TickCentral.LOADER.getClassLoader().getClassBytes(FMLDeobfuscatingRemapper.INSTANCE.unmap(iface));
 				if(ifaceData == null){
-					throw new IOException("Unable to get interface as resource: " + iface + " (" + FMLDeobfuscatingRemapper.INSTANCE.map(iface) + ") Do you have a broken installation? It is referenced in " + className + " (" + FMLDeobfuscatingRemapper.INSTANCE.map(className) + ")");
-				}
-				if(isInstanceOf(new ClassReader(ifaceData), obfuscated, disallowMixinSupers)){
-					return true;
+					TickCentral.LOGGER.warn("Unable to get interface as resource: " + iface + " (" + FMLDeobfuscatingRemapper.INSTANCE.map(iface) + ") Do you have a broken installation? It is referenced in " + className + " (" + FMLDeobfuscatingRemapper.INSTANCE.map(className) + ")");
+				}else{
+					if(isInstanceOf(new ClassReader(ifaceData), obfuscated, disallowMixinSupers)){
+						return true;
+					}
 				}
 			}
 		}
