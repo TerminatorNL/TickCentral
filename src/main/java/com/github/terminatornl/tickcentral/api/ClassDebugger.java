@@ -1,4 +1,4 @@
-package com.github.terminatornl.tickcentral.asm;
+package com.github.terminatornl.tickcentral.api;
 
 import com.github.terminatornl.tickcentral.TickCentral;
 import org.apache.commons.io.FileUtils;
