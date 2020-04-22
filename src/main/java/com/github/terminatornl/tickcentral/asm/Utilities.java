@@ -1,12 +1,9 @@
 package com.github.terminatornl.tickcentral.asm;
 
-import com.github.terminatornl.tickcentral.TickCentral;
-import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.*;
 
 import javax.annotation.Nonnull;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -86,37 +83,6 @@ public class Utilities {
 				if (methodNode.name.equals(targetName) && methodNode.desc.equals(targetDesc)) {
 					methodNode.name = newName;
 				}
-			}
-		}
-	}
-
-	private static final HashSet<String> LOADED_CLASSES = new HashSet<>();
-
-	/**
-	 * Ensures all classes are loaded in order.
-	 * This is required to determine object hierarchy which is used to determine if we modify a class or not.
-	 * @param transformedName t
-	 * @param reader r
-	 * @param loader l
-	 * @throws Throwable any error
-	 */
-	public static void ensureOrderedLoading(String transformedName, ClassReader reader, ClassLoader loader) throws Throwable{
-		String superClass = reader.getSuperName().replace("/",".");
-		if(LOADED_CLASSES.contains(superClass) == false){
-			if(TickCentral.CONFIG.SHOW_FORCED_LOADING){
-				TickCentral.LOGGER.info("Loading superclass: " + superClass + " referenced in " + reader.getClassName() + " (" + transformedName + ")");
-			}
-			Class.forName(superClass, false, loader);
-			LOADED_CLASSES.add(superClass);
-		}
-		for (String iface : reader.getInterfaces()) {
-			iface = iface.replace("/",".");
-			if(LOADED_CLASSES.contains(iface) == false){
-				if(TickCentral.CONFIG.SHOW_FORCED_LOADING) {
-					TickCentral.LOGGER.info("Loading interface: " + iface + " referenced in " + reader.getClassName() + " (" + transformedName + ")");
-				}
-				Class.forName(iface, false, loader);
-				LOADED_CLASSES.add(iface);
 			}
 		}
 	}

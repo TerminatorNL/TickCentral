@@ -1,8 +1,10 @@
 package com.github.terminatornl.tickcentral.asm;
 
 import com.github.terminatornl.tickcentral.TickCentral;
+import com.github.terminatornl.tickcentral.api.ClassSniffer;
 import net.minecraft.launchwrapper.IClassTransformer;
 import net.minecraftforge.fml.common.FMLCommonHandler;
+import net.minecraftforge.fml.common.asm.transformers.deobf.FMLDeobfuscatingRemapper;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.*;
@@ -14,6 +16,7 @@ import java.util.Map;
 public class ITickableTransformer implements IClassTransformer {
 
 	public static final String INTERFACE_CLASS_NON_OBF = "net.minecraft.util.ITickable";
+	public static final String INTERFACE_CLASS_OBF = FMLDeobfuscatingRemapper.INSTANCE.unmap(INTERFACE_CLASS_NON_OBF.replace(".", "/"));
 	public static final String TRUE_ITICKABLE_UPDATE = TickCentral.NAME + "_TrueITickableUpdate";
 
 	private static final HashSet<String> KNOWN_ITICKABLE_SUPERS = new HashSet<>();
@@ -30,7 +33,28 @@ public class ITickableTransformer implements IClassTransformer {
 				return basicClass;
 			}
 			ClassReader reader = new ClassReader(basicClass);
-			Utilities.ensureOrderedLoading(transformedName, reader, getClass().getClassLoader());
+
+			if (ClassSniffer.isInstanceOf(reader, INTERFACE_CLASS_OBF) == false) {
+				return basicClass;
+			}
+
+			/* THE INTERFACE ITSELF */
+			if (UPDATE_METHOD == null) {
+				ClassNode classNode = ClassSniffer.performOnSource(INTERFACE_CLASS_OBF, k -> {
+					ClassNode node = new ClassNode();
+					k.accept(node, 0);
+					return node;
+				});
+
+				if (classNode.methods.size() != 1) {
+					TickCentral.LOGGER.fatal("ITickable interface had another modified by addition of another method! (another mod?). This is not allowed! (Or even be possible)");
+					FMLCommonHandler.instance().exitJava(1, false);
+					throw new RuntimeException();
+				}
+				MethodNode method = classNode.methods.get(0);
+				UPDATE_METHOD = new AbstractMap.SimpleEntry<>(FMLDeobfuscatingRemapper.INSTANCE.mapMethodName(classNode.name,method.name,method.desc), FMLDeobfuscatingRemapper.INSTANCE.mapDesc(method.desc));
+			}
+
 			String className = reader.getClassName();
 			ClassNode classNode = new ClassNode();
 			reader.accept(classNode, 0);
@@ -38,7 +62,6 @@ public class ITickableTransformer implements IClassTransformer {
 			if (transformedName.equals(INTERFACE_CLASS_NON_OBF)) {
 				KNOWN_ITICKABLE_SUPERS.add(classNode.name);
 				MethodNode method = classNode.methods.get(0);
-				UPDATE_METHOD = new AbstractMap.SimpleEntry<>(method.name, method.desc);
 				MethodNode newUpdateTick = Utilities.CopyMethodAppearance(method);
 				newUpdateTick.access = newUpdateTick.access - Opcodes.ACC_ABSTRACT;
 
@@ -52,25 +75,6 @@ public class ITickableTransformer implements IClassTransformer {
 				TickCentral.LOGGER.info("Modified interface: " + transformedName);
 				classNode.methods.add(newUpdateTick);
 				return ClassDebugger.WriteClass(classNode, transformedName);
-			}
-
-
-			boolean IS_SUPERTYPE_OF_ITICKABLE = false;
-			if (KNOWN_ITICKABLE_SUPERS.contains(className)) {
-				IS_SUPERTYPE_OF_ITICKABLE = true;
-			} else if (KNOWN_ITICKABLE_SUPERS.contains(reader.getSuperName())) {
-				KNOWN_ITICKABLE_SUPERS.add(className);
-				IS_SUPERTYPE_OF_ITICKABLE = true;
-			} else {
-				for (String iface : reader.getInterfaces()) {
-					if (KNOWN_ITICKABLE_SUPERS.contains(iface)) {
-						IS_SUPERTYPE_OF_ITICKABLE = true;
-						KNOWN_ITICKABLE_SUPERS.add(className);
-					}
-				}
-			}
-			if (IS_SUPERTYPE_OF_ITICKABLE == false) {
-				return basicClass;
 			}
 
 
@@ -78,32 +82,10 @@ public class ITickableTransformer implements IClassTransformer {
 				TickCentral.LOGGER.info("ITickable found: " + className + " (" + transformedName + ")");
 			}
 
-
-			/* THE INTERFACE ITSELF */
-			if (UPDATE_METHOD == null) {
-				if (classNode.methods.size() != 1) {
-					TickCentral.LOGGER.fatal("ITickable interface had another modified by addition of another method! (another mod?). This is not allowed!");
-					FMLCommonHandler.instance().exitJava(1, false);
-					throw new RuntimeException();
-				}
-				MethodNode method = classNode.methods.get(0);
-				UPDATE_METHOD = new AbstractMap.SimpleEntry<>(method.name, method.desc);
-				MethodNode newUpdateTick = Utilities.CopyMethodAppearance(method);
-				newUpdateTick.access = newUpdateTick.access - Opcodes.ACC_ABSTRACT;
-
-				newUpdateTick.instructions = new InsnList();
-				newUpdateTick.instructions.add(new VarInsnNode(Opcodes.ALOAD, 0));
-				newUpdateTick.instructions.add(new MethodInsnNode(Opcodes.INVOKEINTERFACE, classNode.name, ITickableTransformer.TRUE_ITICKABLE_UPDATE, UPDATE_METHOD.getValue(), true));
-				newUpdateTick.instructions.add(new InsnNode(Opcodes.RETURN));
-
-				method.name = ITickableTransformer.TRUE_ITICKABLE_UPDATE;
-
-				TickCentral.LOGGER.info("Modified interface: " + transformedName);
-				classNode.methods.add(newUpdateTick);
-				return ClassDebugger.WriteClass(classNode, transformedName);
-			}
 			if ((classNode.access & Opcodes.ACC_INTERFACE) != 0) {
-				TickCentral.LOGGER.info("(No need to modify this interface)");
+				if(TickCentral.CONFIG.DEBUG){
+					TickCentral.LOGGER.info("(No need to modify this interface)");
+				}
 				return basicClass;
 			}
 

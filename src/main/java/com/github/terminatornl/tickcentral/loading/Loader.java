@@ -12,9 +12,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
-import java.util.AbstractMap;
-import java.util.LinkedList;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.jar.JarFile;
 import java.util.regex.Matcher;
@@ -26,11 +24,16 @@ public class Loader {
 	private final LinkedList<Map.Entry<Integer, TransformerSupplier>> suppliers = new LinkedList<>();
 	private final LaunchClassLoader loader;
 
+	public LaunchClassLoader getClassLoader(){
+		return loader;
+	}
+
 	public Loader(){
 		loader = ((LaunchClassLoader) getClass().getClassLoader());
-		findTransformersInJarFiles();
+		LinkedList<File> potentialModFiles = new LinkedList<>();
+		findTransformersInJarFiles(potentialModFiles);
 		if(System.getProperty("net.minecraftforge.gradle.GradleStart.csvDir") != null){
-			findTransformersInDeobfuscatedEnvironment();
+			findTransformersInDeobfuscatedEnvironment(potentialModFiles);
 		}
 		suppliers.sort(Map.Entry.comparingByKey());
 		if(suppliers.size() > 0){
@@ -52,7 +55,6 @@ public class Loader {
 		}
 	}
 
-
 	/**
 	 * Returns a new list containing all the classes of class transformers that have to be executed as late as possible
 	 * @return a list of classtransformers
@@ -73,7 +75,7 @@ public class Loader {
 		return list;
 	}
 
-	private void findTransformersInDeobfuscatedEnvironment(){
+	private void findTransformersInDeobfuscatedEnvironment(List<File> foundFiles){
 		TickCentral.LOGGER.info("We're in a deobfuscated environment! Looking for -loadable.txt files");
 
 		InputStream stream = getClass().getClassLoader().getResourceAsStream(TickCentral.NAME+"-loadable.txt");
@@ -89,7 +91,7 @@ public class Loader {
 		}
 	}
 
-	private void findTransformersInJarFiles(){
+	private void findTransformersInJarFiles(List<File> foundFiles){
 		try{
 			String fullPath = URLDecoder.decode(Loader.class.getProtectionDomain().getCodeSource().getLocation().getFile(), StandardCharsets.UTF_8.name());
 			Pattern pattern = Pattern.compile("^(?:.+:)?(.+)!.*$");
@@ -107,10 +109,13 @@ public class Loader {
 
 			File[] potentialMods = modsDirectory.listFiles((dir, name) -> name.toLowerCase().endsWith(".jar"));
 
+
 			/* The mods directory, is a directory... */
 			if(potentialMods == null){
 				throw new IllegalStateException("modsDir.listFiles() returned null! Attempted to index: " + modsDirectory);
 			}
+
+			Collections.addAll(foundFiles, potentialMods);
 
 			for (File file : potentialMods) {
 				JarFile jar = new JarFile(file);

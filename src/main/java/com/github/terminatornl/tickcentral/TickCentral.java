@@ -30,6 +30,8 @@ import java.util.Map;
 		"$wrapper.com.github.terminatornl.tickcentral.core.Config",
 		"com.github.terminatornl.tickcentral.core.ModContainer",
 		"$wrapper.com.github.terminatornl.tickcentral.core.ModContainer",
+		"com.github.terminatornl.tickcentral.api.ClassSniffer",
+		"$wrapper.com.github.terminatornl.tickcentral.api.ClassSniffer",
 })
 @IFMLLoadingPlugin.Name(TickCentral.NAME)
 @IFMLLoadingPlugin.SortingIndex(1001)
@@ -61,7 +63,6 @@ public class TickCentral implements IFMLLoadingPlugin, IFMLCallHook {
 	@Override
 	public String[] getASMTransformerClass() {
 		List<String> list = LOADER.getAllClassTransformers();
-
 		list.add(BlockTransformer.class.getName());
 		list.add(ITickableTransformer.class.getName());
 		list.add(EntityTransformer.class.getName());

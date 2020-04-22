@@ -11,7 +11,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 
-public class Compatibility {
+public class Compatibility{
 
 	private static boolean applied = false;
 

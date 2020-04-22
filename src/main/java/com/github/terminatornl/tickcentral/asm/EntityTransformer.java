@@ -1,8 +1,10 @@
 package com.github.terminatornl.tickcentral.asm;
 
 import com.github.terminatornl.tickcentral.TickCentral;
+import com.github.terminatornl.tickcentral.api.ClassSniffer;
 import net.minecraft.launchwrapper.IClassTransformer;
 import net.minecraftforge.fml.common.FMLCommonHandler;
+import net.minecraftforge.fml.common.asm.transformers.deobf.FMLDeobfuscatingRemapper;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.*;
@@ -14,6 +16,7 @@ import java.util.Map;
 public class EntityTransformer implements IClassTransformer {
 
 	public static final String ENTITY_CLASS_NON_OBF = "net.minecraft.entity.Entity";
+	public static final String ENTITY_CLASS_OBF = FMLDeobfuscatingRemapper.INSTANCE.unmap(ENTITY_CLASS_NON_OBF.replace(".", "/"));
 	public static final String TRUE_ONUPDATE_TICK_NAME = TickCentral.NAME + "_TrueOnUpdateTick";
 	private static final HashSet<String> KNOWN_ENTITY_SUPERS = new HashSet<>();
 
@@ -35,29 +38,15 @@ public class EntityTransformer implements IClassTransformer {
 			}
 
 			ClassReader reader = new ClassReader(basicClass);
-			Utilities.ensureOrderedLoading(transformedName, reader, getClass().getClassLoader());
 
-			String className = reader.getClassName();
-			boolean IS_SUPERTYPE_OF_ENTITY = false;
-			if (KNOWN_ENTITY_SUPERS.contains(className)) {
-				IS_SUPERTYPE_OF_ENTITY = true;
-			} else if (KNOWN_ENTITY_SUPERS.contains(reader.getSuperName())) {
-				KNOWN_ENTITY_SUPERS.add(className);
-				IS_SUPERTYPE_OF_ENTITY = true;
-			}
-
-			if (IS_SUPERTYPE_OF_ENTITY) {
-
-				if(TickCentral.CONFIG.DEBUG){
-					TickCentral.LOGGER.info("Entity found: " + className + " (" + transformedName + ")");
-				}
-
-
-				ClassNode classNode = new ClassNode();
-				reader.accept(classNode, 0);
-
+			if (ClassSniffer.isInstanceOf(reader, ENTITY_CLASS_OBF)) {
 				if (ONUPDATE_TICK_METHOD == null) {
 					/* Find the method to target. We base this off one method calling the other which refers to a constant, where the caller is our target.*/
+					ClassNode classNode = ClassSniffer.performOnSource(ENTITY_CLASS_OBF, k -> {
+						ClassNode node = new ClassNode();
+						k.accept(node, 0);
+						return node;
+					});
 
 					String targetTargetMethod = null;
 					for (MethodNode node : classNode.methods) {
@@ -73,9 +62,9 @@ public class EntityTransformer implements IClassTransformer {
 						throw new RuntimeException();
 					}
 					for (MethodNode node : classNode.methods) {
-						if (Utilities.usesMethodInstruction(Opcodes.INVOKEVIRTUAL, className, targetTargetMethod, "()V", node.instructions)) {
+						if (Utilities.usesMethodInstruction(Opcodes.INVOKEVIRTUAL, classNode.name, targetTargetMethod, "()V", node.instructions)) {
 							TickCentral.LOGGER.info("Found onUpdate as " + targetTargetMethod);
-							ONUPDATE_TICK_METHOD = new AbstractMap.SimpleEntry<>(node.name, node.desc);
+							ONUPDATE_TICK_METHOD = new AbstractMap.SimpleEntry<>(FMLDeobfuscatingRemapper.INSTANCE.mapMethodName(classNode.name, node.name, node.desc), FMLDeobfuscatingRemapper.INSTANCE.mapDesc(node.desc));
 						}
 					}
 					if (ONUPDATE_TICK_METHOD == null) {
@@ -84,6 +73,18 @@ public class EntityTransformer implements IClassTransformer {
 						throw new RuntimeException();
 					}
 				}
+
+				String className = reader.getClassName();
+
+				if(TickCentral.CONFIG.DEBUG){
+					TickCentral.LOGGER.info("Entity found: " + className + " (" + transformedName + ")");
+				}
+
+
+				ClassNode classNode = new ClassNode();
+				reader.accept(classNode, 0);
+
+
 				MethodNode newUpdateTick = null;
 				for (MethodNode method : classNode.methods) {
 					if (ONUPDATE_TICK_METHOD.getKey().equals(method.name) && ONUPDATE_TICK_METHOD.getValue().equals(method.desc)) {
