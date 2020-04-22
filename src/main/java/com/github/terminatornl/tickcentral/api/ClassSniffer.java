@@ -6,7 +6,6 @@ import net.minecraftforge.fml.common.asm.transformers.deobf.FMLDeobfuscatingRema
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.ClassNode;
-import org.spongepowered.asm.mixin.Mixin;
 
 import java.io.IOException;
 import java.lang.reflect.Field;

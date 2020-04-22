@@ -82,7 +82,7 @@ public class Loader {
 		if(stream != null){
 			BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
 			try {
-				parseLoadables(reader, null);
+				parseLoadables(reader, new File(getClass().getClassLoader().getResource(TickCentral.NAME+"-loadable.txt").toURI()));
 			} catch (Throwable e) {
 				throw new RuntimeException(e);
 			}
