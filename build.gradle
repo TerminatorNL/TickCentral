@@ -64,7 +64,7 @@ processResources {
     }
 }
 
-task install << {
+task installToObfServer << {
     delete fileTree('run_server_obf/mods') {
         include "$archivesBaseName*"
     }
