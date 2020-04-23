@@ -13,7 +13,7 @@ apply plugin: 'net.minecraftforge.gradle.forge'
 apply plugin: 'maven-publish'
 
 
-version = "2.1"
+version = "2.2"
 group = "com.github.terminatornl.tickcentral" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "TickCentral"
 
@@ -135,7 +135,7 @@ task signJar(type: SignJar, dependsOn: reobfJar) {
         outputFile = jar.archivePath
     }
 }
-install.dependsOn build
+installToObfServer.dependsOn build
 build.dependsOn signJar
 
 publishing { // for the publishToMavenLocal task
