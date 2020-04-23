@@ -3,6 +3,7 @@ package com.github.terminatornl.tickcentral.api;
 import net.minecraft.launchwrapper.IClassTransformer;
 import net.minecraft.launchwrapper.LaunchClassLoader;
 import net.minecraftforge.fml.relauncher.IFMLCallHook;
+import net.minecraftforge.fml.relauncher.Side;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
@@ -14,7 +15,7 @@ import java.util.Map;
  */
 public interface TransformerSupplier extends IFMLCallHook {
 
-	default void onLoad(LaunchClassLoader loader){
+	default void onLoad(LaunchClassLoader loader, Side side){
 
 	}
 
@@ -48,7 +49,7 @@ public interface TransformerSupplier extends IFMLCallHook {
 	 * Injected with data from the FML environment:
 	 * "classLoader" : The FML Class Loader
 	 *
-	 * @param data
+	 * @param data data obtained from forge
 	 */
 	@Override
 	default void injectData(Map<String, Object> data){
@@ -61,6 +62,7 @@ public interface TransformerSupplier extends IFMLCallHook {
 	 * @return computed result
 	 * @throws Exception if unable to compute a result
 	 */
+	@SuppressWarnings("RedundantThrows")
 	@Override
 	default Void call() throws Exception{
 		return null;

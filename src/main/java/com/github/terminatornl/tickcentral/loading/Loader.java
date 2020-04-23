@@ -5,6 +5,8 @@ import com.github.terminatornl.tickcentral.api.TransformerSupplier;
 import net.minecraft.launchwrapper.IClassTransformer;
 import net.minecraft.launchwrapper.LaunchClassLoader;
 import net.minecraftforge.fml.relauncher.CoreModManager;
+import net.minecraftforge.fml.relauncher.FMLLaunchHandler;
+import net.minecraftforge.fml.relauncher.Side;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -23,6 +25,7 @@ public class Loader {
 
 	private final LinkedList<Map.Entry<Integer, TransformerSupplier>> suppliers = new LinkedList<>();
 	private final LaunchClassLoader loader;
+	private final Side side = FMLLaunchHandler.side();
 
 	public LaunchClassLoader getClassLoader(){
 		return loader;
@@ -41,6 +44,7 @@ public class Loader {
 		}else{
 			TickCentral.LOGGER.warn("Warning: No addons detected. " + TickCentral.NAME + " currently serves no purpose!");
 		}
+
 	}
 
 	public void distributeCalls() throws Exception{
@@ -82,6 +86,7 @@ public class Loader {
 		if(stream != null){
 			BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
 			try {
+				//noinspection ConstantConditions
 				parseLoadables(reader, new File(getClass().getClassLoader().getResource(TickCentral.NAME+"-loadable.txt").toURI()));
 			} catch (Throwable e) {
 				throw new RuntimeException(e);
@@ -143,7 +148,7 @@ public class Loader {
 				if (obj instanceof TransformerSupplier) {
 					TransformerSupplier transformer = (TransformerSupplier) obj;
 					CoreModManager.getReparseableCoremods().add(file.getName());
-					transformer.onLoad(loader);
+					transformer.onLoad(loader, side);
 					suppliers.add(new AbstractMap.SimpleEntry<>(transformer.callOrder(), transformer));
 				} else {
 					throw new IllegalArgumentException("Class " + obj.getClass().getName() + " is not an instance of " + TransformerSupplier.class.getName());

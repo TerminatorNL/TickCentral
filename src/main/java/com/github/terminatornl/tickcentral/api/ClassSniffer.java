@@ -19,7 +19,7 @@ import java.util.function.Function;
  * This assumes no transformers are changing superclasses DRAMATICALLY. I guess nobody is crazy enough to
  * actually change tonnes of classes and their hierarchy, so this should be reasonably safe.
  */
-public class ClassSniffer{
+public class ClassSniffer {
 
 	private static final HashMap<String, HashSet<String>> KNOWN_IMPLEMENTORS = new HashMap<>();
 	private static final Set<String> classLoaderExceptions;
@@ -41,35 +41,34 @@ public class ClassSniffer{
 		}
 	}
 
-	private static boolean isProtected(String target){
+	private static boolean isProtected(String target) {
 		target = target.replace("/", ".");
 		for (String exceptions : classLoaderExceptions) {
-			if(target.startsWith(exceptions)){
+			if (target.startsWith(exceptions)) {
 				return true;
 			}
 		}
 		for (String exceptions : transformerExceptions) {
-			if(target.startsWith(exceptions)){
+			if (target.startsWith(exceptions)) {
 				return true;
 			}
 		}
 		return false;
 	}
 
-	private static void addKnownImplementor(String className, String obfuscated){
+	private static void addKnownImplementor(String className, String obfuscated) {
 		HashSet<String> implementors = KNOWN_IMPLEMENTORS.computeIfAbsent(obfuscated, k -> new HashSet<>());
 		implementors.add(className);
 	}
 
-	private static boolean isKnownImplementor(String className, String obfuscated){
+	private static boolean isKnownImplementor(String className, String obfuscated) {
 		HashSet<String> implementors = KNOWN_IMPLEMENTORS.get(obfuscated);
-		if(implementors == null){
+		if (implementors == null) {
 			return false;
-		}else{
+		} else {
 			return implementors.contains(className);
 		}
 	}
-
 
 
 	public static boolean isInstanceOf(ClassReader reader, String obfuscated) throws IOException {
@@ -78,53 +77,53 @@ public class ClassSniffer{
 
 	public static boolean isInstanceOf(ClassReader reader, String obfuscated, boolean disallowMixinSupers) throws IOException {
 		String className = FMLDeobfuscatingRemapper.INSTANCE.unmap(reader.getClassName());
-		if(isKnownImplementor(className, obfuscated)){
+		if (isKnownImplementor(className, obfuscated)) {
 			return true;
 		}
-		if(className.equals(obfuscated)){
+		if (className.equals(obfuscated)) {
 			addKnownImplementor(className, obfuscated);
 			return true;
 		}
 		String superName = reader.getSuperName();
-		if(superName.equals(obfuscated)){
+		if (superName.equals(obfuscated)) {
 			addKnownImplementor(className, obfuscated);
 			return true;
 		}
 		for (String iface : reader.getInterfaces()) {
-			if(iface.equals(obfuscated)){
+			if (iface.equals(obfuscated)) {
 				addKnownImplementor(className, obfuscated);
 				return true;
 			}
 		}
-		if(isProtected(superName) == false){
+		if (isProtected(superName) == false) {
 			byte[] superClass = TickCentral.LOADER.getClassLoader().getClassBytes(FMLDeobfuscatingRemapper.INSTANCE.unmap(superName));
-			if(superClass == null){
+			if (superClass == null) {
 				TickCentral.LOGGER.warn("Unable to get superclass as resource: " + superName + " (" + FMLDeobfuscatingRemapper.INSTANCE.map(superName) + ") Do you have a broken installation? It is referenced in " + className + " (" + FMLDeobfuscatingRemapper.INSTANCE.map(className) + ")");
-			}else{
+			} else {
 				ClassReader superReader = new ClassReader(superClass);
-				if(disallowMixinSupers){
+				if (disallowMixinSupers) {
 					ClassNode superClassNode = new ClassNode();
 					superReader.accept(superClassNode, 0);
-					if(superClassNode.invisibleAnnotations != null){
+					if (superClassNode.invisibleAnnotations != null) {
 						for (AnnotationNode annotation : superClassNode.invisibleAnnotations) {
-							if(annotation.desc.equals("Lorg/spongepowered/asm/mixin/Mixin;")){
+							if (annotation.desc.equals("Lorg/spongepowered/asm/mixin/Mixin;")) {
 								return false;
 							}
 						}
 					}
 				}
-				if(isInstanceOf(superReader, obfuscated, disallowMixinSupers)){
+				if (isInstanceOf(superReader, obfuscated, disallowMixinSupers)) {
 					return true;
 				}
 			}
 		}
 		for (String iface : reader.getInterfaces()) {
-			if(isProtected(iface) == false){
+			if (isProtected(iface) == false) {
 				byte[] ifaceData = TickCentral.LOADER.getClassLoader().getClassBytes(FMLDeobfuscatingRemapper.INSTANCE.unmap(iface));
-				if(ifaceData == null){
+				if (ifaceData == null) {
 					TickCentral.LOGGER.warn("Unable to get interface as resource: " + iface + " (" + FMLDeobfuscatingRemapper.INSTANCE.map(iface) + ") Do you have a broken installation? It is referenced in " + className + " (" + FMLDeobfuscatingRemapper.INSTANCE.map(className) + ")");
-				}else{
-					if(isInstanceOf(new ClassReader(ifaceData), obfuscated, disallowMixinSupers)){
+				} else {
+					if (isInstanceOf(new ClassReader(ifaceData), obfuscated, disallowMixinSupers)) {
 						return true;
 					}
 				}
