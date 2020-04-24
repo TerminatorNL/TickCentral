@@ -9,6 +9,7 @@ import net.minecraft.world.World;
 
 import java.util.Random;
 
+@SuppressWarnings("unused")
 public interface TickInterceptor {
 
 	default void redirectUpdateTick(Block block, World worldIn, BlockPos pos, IBlockState state, Random random){

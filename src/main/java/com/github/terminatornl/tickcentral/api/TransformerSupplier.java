@@ -22,6 +22,7 @@ public interface TransformerSupplier extends IFMLCallHook {
 	/**
 	 * @return The order in which to trigger the {@link IFMLCallHook} calls  in relation to other TickCentral projects.
 	 */
+	@SuppressWarnings("SameReturnValue")
 	default int callOrder(){
 		return 0;
 	}

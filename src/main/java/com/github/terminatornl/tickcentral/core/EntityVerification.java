@@ -14,6 +14,7 @@ import net.minecraftforge.fml.common.FMLCommonHandler;
 
 import java.util.Random;
 
+@SuppressWarnings("ALL")
 public class EntityVerification extends Entity implements TickInterceptor {
 
 	public boolean KILL_MODE = true;
@@ -84,7 +85,7 @@ public class EntityVerification extends Entity implements TickInterceptor {
 	/**
 	 * (abstract) Protected helper method to read subclass entity data from NBT.
 	 *
-	 * @param compound
+	 * @param compound t
 	 */
 	@Override
 	protected void readEntityFromNBT(NBTTagCompound compound) {
@@ -94,7 +95,7 @@ public class EntityVerification extends Entity implements TickInterceptor {
 	/**
 	 * (abstract) Protected helper method to write subclass entity data to NBT.
 	 *
-	 * @param compound
+	 * @param compound t
 	 */
 	@Override
 	protected void writeEntityToNBT(NBTTagCompound compound) {

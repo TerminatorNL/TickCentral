@@ -70,7 +70,6 @@ public class ClassSniffer {
 		}
 	}
 
-
 	public static boolean isInstanceOf(ClassReader reader, String obfuscated) throws IOException {
 		return isInstanceOf(reader, obfuscated, true);
 	}
@@ -120,9 +119,7 @@ public class ClassSniffer {
 		for (String iface : reader.getInterfaces()) {
 			if (isProtected(iface) == false) {
 				byte[] ifaceData = TickCentral.LOADER.getClassLoader().getClassBytes(FMLDeobfuscatingRemapper.INSTANCE.unmap(iface));
-				if (ifaceData == null) {
-					TickCentral.LOGGER.warn("Unable to get interface as resource: " + iface + " (" + FMLDeobfuscatingRemapper.INSTANCE.map(iface) + ") Do you have a broken installation? It is referenced in " + className + " (" + FMLDeobfuscatingRemapper.INSTANCE.map(className) + ")");
-				} else {
+				if (ifaceData != null) {
 					if (isInstanceOf(new ClassReader(ifaceData), obfuscated, disallowMixinSupers)) {
 						return true;
 					}
@@ -133,15 +130,13 @@ public class ClassSniffer {
 	}
 
 
-	public static <R> R performOnSource(String source, Function<ClassReader,R> callable) throws IOException, ClassNotFoundException{
+	public static <R> R performOnSource(String source, Function<ClassReader, R> callable) throws IOException, ClassNotFoundException {
 		byte[] data = TickCentral.LOADER.getClassLoader().getClassBytes(FMLDeobfuscatingRemapper.INSTANCE.unmap(source));
-		if(data == null){
+		if (data == null) {
 			throw new ClassNotFoundException("Unable to find class: " + source + " (" + FMLDeobfuscatingRemapper.INSTANCE.unmap(source) + ")");
 		}
 		return callable.apply(new ClassReader(data));
 	}
-
-
 
 
 }

@@ -14,6 +14,7 @@ import net.minecraftforge.fml.common.FMLCommonHandler;
 
 import java.util.Random;
 
+@SuppressWarnings("ALL")
 public class BlockVerification extends Block implements ITickableProxyInterface, TickInterceptor {
 
 	public boolean KILL_MODE = true;
@@ -79,6 +80,7 @@ public class BlockVerification extends Block implements ITickableProxyInterface,
 
 	}
 
+	@SuppressWarnings("ConstantConditions")
 	public void callInternally(){
 		TickInterceptor origionalInterceptor = TickHub.INTERCEPTOR;
 		TickHub.INTERCEPTOR = this;

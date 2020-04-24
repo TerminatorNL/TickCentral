@@ -13,7 +13,7 @@ import java.nio.file.StandardOpenOption;
 
 public class ClassDebugger {
 
-	public static File DEBUG_FOLDER = new File(TickCentral.CONFIG.FOLDER, "DEBUG");
+	public static final File DEBUG_FOLDER = new File(TickCentral.CONFIG.FOLDER, "DEBUG");
 	static {
 		try {
 			if(DEBUG_FOLDER.exists()){
@@ -33,7 +33,7 @@ public class ClassDebugger {
 		byte[] bytes = writer.toByteArray();
 
 		if(TickCentral.CONFIG.DEBUG){
-			File classFile = Paths.get(DEBUG_FOLDER.toString(), transformedName.replaceAll("[\\.\\/]+",".").replace(".", "/")).toFile();
+			File classFile = Paths.get(DEBUG_FOLDER.toString(), transformedName.replaceAll("[./]+",".").replace(".", "/")).toFile();
 
 			if(classFile.getParentFile().exists() == false && classFile.getParentFile().mkdirs() == false){
 				throw new IOException("Unable to create directory: " + classFile.getParentFile());

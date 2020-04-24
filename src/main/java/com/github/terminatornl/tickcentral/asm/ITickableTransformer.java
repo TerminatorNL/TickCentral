@@ -11,7 +11,6 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.*;
 
 import java.util.AbstractMap;
-import java.util.HashSet;
 import java.util.Map;
 
 public class ITickableTransformer implements IClassTransformer {
@@ -20,18 +19,13 @@ public class ITickableTransformer implements IClassTransformer {
 	public static final String INTERFACE_CLASS_OBF = FMLDeobfuscatingRemapper.INSTANCE.unmap(INTERFACE_CLASS_NON_OBF.replace(".", "/"));
 	public static final String TRUE_ITICKABLE_UPDATE = TickCentral.NAME + "_TrueITickableUpdate";
 
-	private static final HashSet<String> KNOWN_ITICKABLE_SUPERS = new HashSet<>();
 	public static Map.Entry<String, String> UPDATE_METHOD = null;
-
-	static {
-		KNOWN_ITICKABLE_SUPERS.add(INTERFACE_CLASS_NON_OBF.replace(".", "/"));
-	}
 
 	@Override
 	public byte[] transform(String name, String transformedName, byte[] basicClass) {
 		try {
 			if (basicClass == null) {
-				return basicClass;
+				return null;
 			}
 			ClassReader reader = new ClassReader(basicClass);
 
@@ -56,12 +50,13 @@ public class ITickableTransformer implements IClassTransformer {
 				UPDATE_METHOD = new AbstractMap.SimpleEntry<>(FMLDeobfuscatingRemapper.INSTANCE.mapMethodName(classNode.name,method.name,method.desc), FMLDeobfuscatingRemapper.INSTANCE.mapDesc(method.desc));
 			}
 
+			boolean dirty = false;
+
 			String className = reader.getClassName();
 			ClassNode classNode = new ClassNode();
 			reader.accept(classNode, 0);
 
 			if (transformedName.equals(INTERFACE_CLASS_NON_OBF)) {
-				KNOWN_ITICKABLE_SUPERS.add(classNode.name);
 				MethodNode method = classNode.methods.get(0);
 				MethodNode newUpdateTick = Utilities.CopyMethodAppearance(method);
 				newUpdateTick.access = newUpdateTick.access - Opcodes.ACC_ABSTRACT;
@@ -101,16 +96,21 @@ public class ITickableTransformer implements IClassTransformer {
 					newUpdateTick.instructions.add(new MethodInsnNode(Opcodes.INVOKEINTERFACE, "com/github/terminatornl/tickcentral/api/TickInterceptor", "redirectUpdate", "(Lnet/minecraft/util/ITickable;)V", true));
 					newUpdateTick.instructions.add(new InsnNode(Opcodes.RETURN));
 					method.name = TRUE_ITICKABLE_UPDATE;
+					dirty = true;
 				}
 			}
 			if(newUpdateTick != null){
 				classNode.methods.add(newUpdateTick);
 			}
 			for (MethodNode method : classNode.methods) {
-				Utilities.convertTargetInstruction(className, UPDATE_METHOD.getKey(), UPDATE_METHOD.getValue(), className, TRUE_ITICKABLE_UPDATE, method.instructions);
-				Utilities.convertSuperInstructions(UPDATE_METHOD.getKey(), UPDATE_METHOD.getValue(), TRUE_ITICKABLE_UPDATE, method.instructions);
+				dirty = Utilities.convertTargetInstruction(className, UPDATE_METHOD.getKey(), UPDATE_METHOD.getValue(), className, TRUE_ITICKABLE_UPDATE, method.instructions) || dirty;
+				dirty = Utilities.convertSuperInstructions(UPDATE_METHOD.getKey(), UPDATE_METHOD.getValue(), TRUE_ITICKABLE_UPDATE, method.instructions) || dirty;
 			}
-			return ClassDebugger.WriteClass(classNode, transformedName);
+			if(dirty){
+				return ClassDebugger.WriteClass(classNode, transformedName);
+			}else{
+				return basicClass;
+			}
 		} catch (Throwable e) {
 			TickCentral.LOGGER.fatal("An error has occurred",e);
 			FMLCommonHandler.instance().exitJava(1, false);

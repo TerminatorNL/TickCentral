@@ -10,7 +10,10 @@ import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.*;
 
-import java.util.*;
+import java.util.AbstractMap;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Map;
 
 public class BlockTransformer implements IClassTransformer {
 
@@ -18,23 +21,15 @@ public class BlockTransformer implements IClassTransformer {
 	public static final String BLOCK_CLASS_OBF = FMLDeobfuscatingRemapper.INSTANCE.unmap(BLOCK_CLASS_NON_OBF.replace(".", "/"));
 	public static final String TRUE_UPDATE_TICK_NAME = TickCentral.NAME + "_TrueUpdateTick";
 	public static final String TRUE_RANDOM_TICK_NAME = TickCentral.NAME + "_TrueRandomTick";
-	private static final HashSet<String> KNOWN_BLOCK_SUPERS = new HashSet<>();
 
 	public static Map.Entry<String, String> RANDOM_TICK_METHOD = null;
 	public static Map.Entry<String, String> UPDATE_TICK_METHOD = null;
 
-	static {
-		KNOWN_BLOCK_SUPERS.add(BLOCK_CLASS_NON_OBF.replace(".", "/"));
-	}
-
 	@Override
 	public byte[] transform(String name, String transformedName, byte[] basicClass) {
 		try {
-			if (transformedName.equals(BLOCK_CLASS_NON_OBF)) {
-				KNOWN_BLOCK_SUPERS.add(name);
-			}
 			if (basicClass == null) {
-				return basicClass;
+				return null;
 			}
 			ClassReader reader = new ClassReader(basicClass);
 			if (ClassSniffer.isInstanceOf(reader, BLOCK_CLASS_OBF) == false) {
@@ -44,6 +39,7 @@ public class BlockTransformer implements IClassTransformer {
 			if (TickCentral.CONFIG.DEBUG) {
 				TickCentral.LOGGER.info("Block found: " + className + " (" + transformedName + ")");
 			}
+			boolean dirty = false;
 			if (RANDOM_TICK_METHOD == null || UPDATE_TICK_METHOD == null) {
 				/* Find the method to target. We base this off a java Random at the fourth position, and there are two identical methods */
 				ClassNode classNode = ClassSniffer.performOnSource(BLOCK_CLASS_OBF, k -> {
@@ -123,7 +119,7 @@ public class BlockTransformer implements IClassTransformer {
 					newUpdateTick.instructions.add(new MethodInsnNode(Opcodes.INVOKEINTERFACE, "com/github/terminatornl/tickcentral/api/TickInterceptor", "redirectUpdateTick", "(Lnet/minecraft/block/Block;Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/state/IBlockState;Ljava/util/Random;)V", true));
 					newUpdateTick.instructions.add(new InsnNode(Opcodes.RETURN));
 					method.name = TRUE_UPDATE_TICK_NAME;
-
+					dirty = true;
 				} else if (RANDOM_TICK_METHOD.getKey().equals(method.name) && RANDOM_TICK_METHOD.getValue().equals(method.desc)) {
 					newRandomTick = Utilities.CopyMethodAppearance(method);
 					newRandomTick.instructions = new InsnList();
@@ -136,6 +132,7 @@ public class BlockTransformer implements IClassTransformer {
 					newRandomTick.instructions.add(new MethodInsnNode(Opcodes.INVOKEINTERFACE, "com/github/terminatornl/tickcentral/api/TickInterceptor", "redirectRandomTick", "(Lnet/minecraft/block/Block;Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/state/IBlockState;Ljava/util/Random;)V", true));
 					newRandomTick.instructions.add(new InsnNode(Opcodes.RETURN));
 					method.name = TRUE_RANDOM_TICK_NAME;
+					dirty = true;
 				}
 			}
 			if (newUpdateTick != null) {
@@ -145,14 +142,17 @@ public class BlockTransformer implements IClassTransformer {
 				classNode.methods.add(newRandomTick);
 			}
 			for (MethodNode method : classNode.methods) {
-				Utilities.convertTargetInstruction(className, RANDOM_TICK_METHOD.getKey(), RANDOM_TICK_METHOD.getValue(), className, TRUE_RANDOM_TICK_NAME, method.instructions);
-				Utilities.convertTargetInstruction(className, UPDATE_TICK_METHOD.getKey(), UPDATE_TICK_METHOD.getValue(), className, TRUE_UPDATE_TICK_NAME, method.instructions);
+				dirty = Utilities.convertTargetInstruction(className, RANDOM_TICK_METHOD.getKey(), RANDOM_TICK_METHOD.getValue(), className, TRUE_RANDOM_TICK_NAME, method.instructions) || dirty;
+				dirty = Utilities.convertTargetInstruction(className, UPDATE_TICK_METHOD.getKey(), UPDATE_TICK_METHOD.getValue(), className, TRUE_UPDATE_TICK_NAME, method.instructions) || dirty;
 
-				Utilities.convertSuperInstructions(RANDOM_TICK_METHOD.getKey(), RANDOM_TICK_METHOD.getValue(), TRUE_RANDOM_TICK_NAME, method.instructions);
-				Utilities.convertSuperInstructions(UPDATE_TICK_METHOD.getKey(), UPDATE_TICK_METHOD.getValue(), TRUE_UPDATE_TICK_NAME, method.instructions);
+				dirty = Utilities.convertSuperInstructions(RANDOM_TICK_METHOD.getKey(), RANDOM_TICK_METHOD.getValue(), TRUE_RANDOM_TICK_NAME, method.instructions) || dirty;
+				dirty = Utilities.convertSuperInstructions(UPDATE_TICK_METHOD.getKey(), UPDATE_TICK_METHOD.getValue(), TRUE_UPDATE_TICK_NAME, method.instructions) || dirty;
 			}
-			return ClassDebugger.WriteClass(classNode, transformedName);
-
+			if(dirty){
+				return ClassDebugger.WriteClass(classNode, transformedName);
+			}else{
+				return basicClass;
+			}
 		} catch (Throwable e) {
 			TickCentral.LOGGER.fatal("An error has occurred", e);
 			FMLCommonHandler.instance().exitJava(1, false);

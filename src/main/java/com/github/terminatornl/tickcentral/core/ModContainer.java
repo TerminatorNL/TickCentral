@@ -25,10 +25,15 @@ import java.net.URL;
 import java.security.cert.Certificate;
 import java.util.*;
 
+/**
+ * This class is used to validate that we're able to apply our transformations correctly in an early stage.
+ * Of course, the normal ModContainer implementation is present as well.
+ */
+@SuppressWarnings({"unused", "ConstantConditions"})
 public class ModContainer implements net.minecraftforge.fml.common.ModContainer, TickInterceptor {
 
 	@Override
-	public boolean registerBus(EventBus bus, LoadController controller) {
+	public boolean registerBus(@SuppressWarnings("UnstableApiUsage") EventBus bus, LoadController controller) {
 		BlockVerification blockVerification = new BlockVerification();
 		TickCentral.LOGGER.info("Testing if transformations have been applied...");
 
@@ -159,7 +164,7 @@ public class ModContainer implements net.minecraftforge.fml.common.ModContainer,
 	/**
 	 * Attach this mod to it's metadata from the supplied metadata collection
 	 *
-	 * @param mc
+	 * @param mc .
 	 */
 	@Override
 	public void bindMetadata(MetadataCollection mc) {
@@ -169,7 +174,7 @@ public class ModContainer implements net.minecraftforge.fml.common.ModContainer,
 	/**
 	 * Set the enabled/disabled state of this mod
 	 *
-	 * @param enabled
+	 * @param enabled .
 	 */
 	@Override
 	public void setEnabledState(boolean enabled) {
@@ -215,7 +220,7 @@ public class ModContainer implements net.minecraftforge.fml.common.ModContainer,
 	/**
 	 * Does this mod match the supplied mod
 	 *
-	 * @param mod
+	 * @param mod .
 	 */
 	@Override
 	public boolean matches(Object mod) {

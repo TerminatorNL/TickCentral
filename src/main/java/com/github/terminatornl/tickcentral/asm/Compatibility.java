@@ -1,14 +1,14 @@
-package com.github.terminatornl.tickcentral.asm.workarounds;
+package com.github.terminatornl.tickcentral.asm;
 
 import com.github.terminatornl.tickcentral.TickCentral;
 import net.minecraft.launchwrapper.IClassTransformer;
 import net.minecraft.launchwrapper.LaunchClassLoader;
 import net.minecraftforge.fml.common.asm.ASMTransformerWrapper;
+import net.minecraftforge.fml.common.asm.transformers.ModAPITransformer;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.List;
 
 public class Compatibility{
@@ -60,34 +60,38 @@ public class Compatibility{
 		}
 
 		private void sortSelf(){
-			this.sort(new Comparator<IClassTransformer>() {
-				@Override
-				public int compare(IClassTransformer one, IClassTransformer two) {
-					if(one instanceof ASMTransformerWrapper.TransformerWrapper){
-						try {
-							one = (IClassTransformer) transformerField.get(one);
-						} catch (IllegalAccessException e) {
-							throw new RuntimeException(e);
-						}
+			this.sort((one, two) -> {
+				if(one instanceof ASMTransformerWrapper.TransformerWrapper){
+					try {
+						one = (IClassTransformer) transformerField.get(one);
+					} catch (IllegalAccessException e) {
+						throw new RuntimeException(e);
 					}
-					if(two instanceof ASMTransformerWrapper.TransformerWrapper){
-						try {
-							two = (IClassTransformer) transformerField.get(two);
-						} catch (IllegalAccessException e) {
-							throw new RuntimeException(e);
-						}
-					}
-					int r = 0;
-					for (Class<?> b : bias) {
-						if(b.isAssignableFrom(one.getClass())){
-							r++;
-						}
-						if(b.isAssignableFrom(two.getClass())){
-							r--;
-						}
-					}
-					return r;
 				}
+				if(two instanceof ASMTransformerWrapper.TransformerWrapper){
+					try {
+						two = (IClassTransformer) transformerField.get(two);
+					} catch (IllegalAccessException e) {
+						throw new RuntimeException(e);
+					}
+				}
+				int r = 0;
+
+				if(one instanceof ModAPITransformer){
+					r += 10;
+				}else if(two instanceof ModAPITransformer){
+					r += 10;
+				}
+
+				for (Class<?> b : bias) {
+					if(b.isAssignableFrom(one.getClass())){
+						r++;
+					}
+					if(b.isAssignableFrom(two.getClass())){
+						r--;
+					}
+				}
+				return r;
 			});
 		}
 	}

@@ -1,14 +1,10 @@
 package com.github.terminatornl.tickcentral;
 
-import com.github.terminatornl.tickcentral.asm.BlockTransformer;
-import com.github.terminatornl.tickcentral.asm.EntityTransformer;
-import com.github.terminatornl.tickcentral.asm.HubAPITransformer;
-import com.github.terminatornl.tickcentral.asm.ITickableTransformer;
-import com.github.terminatornl.tickcentral.asm.workarounds.Compatibility;
+import com.github.terminatornl.tickcentral.asm.*;
 import com.github.terminatornl.tickcentral.core.Config;
 import com.github.terminatornl.tickcentral.loading.Loader;
 import net.minecraft.launchwrapper.IClassTransformer;
-import net.minecraftforge.fml.common.asm.transformers.ModAPITransformer;
+import net.minecraftforge.fml.common.asm.transformers.TerminalTransformer;
 import net.minecraftforge.fml.relauncher.IFMLCallHook;
 import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin;
 import org.apache.logging.log4j.LogManager;
@@ -21,17 +17,12 @@ import java.util.Map;
 
 @IFMLLoadingPlugin.TransformerExclusions({
 		"com.github.terminatornl.tickcentral.asm.",
-		"$wrapper.com.github.terminatornl.tickcentral.asm.",
+		"$wrapper.com.github.terminatornl.tickcentral",
 		"com.github.terminatornl.tickcentral.loading.",
-		"$wrapper.com.github.terminatornl.tickcentral.loading.",
 		"com.github.terminatornl.tickcentral.TickCentral",
-		"$wrapper.com.github.terminatornl.tickcentral.TickCentral",
 		"com.github.terminatornl.tickcentral.core.Config",
-		"$wrapper.com.github.terminatornl.tickcentral.core.Config",
 		"com.github.terminatornl.tickcentral.core.ModContainer",
-		"$wrapper.com.github.terminatornl.tickcentral.core.ModContainer",
-		"com.github.terminatornl.tickcentral.api.ClassSniffer",
-		"$wrapper.com.github.terminatornl.tickcentral.api.ClassSniffer",
+		"com.github.terminatornl.tickcentral.api.ClassSniffer"
 })
 @IFMLLoadingPlugin.Name(TickCentral.NAME)
 @IFMLLoadingPlugin.SortingIndex(1001)
@@ -78,7 +69,7 @@ public class TickCentral implements IFMLLoadingPlugin, IFMLCallHook {
 		list.add(ITickableTransformer.class);
 		list.add(EntityTransformer.class);
 		list.add(HubAPITransformer.class);
-		list.add(ModAPITransformer.class);
+		list.add(TerminalTransformer.class);
 
 		return list;
 	}
@@ -101,7 +92,7 @@ public class TickCentral implements IFMLLoadingPlugin, IFMLCallHook {
 	 * "coremodList" : the list of coremods
 	 * "coremodLocation" : the file this coremod loaded from,
 	 *
-	 * @param data
+	 * @param data .
 	 */
 	@Override
 	public void injectData(Map<String, Object> data) {

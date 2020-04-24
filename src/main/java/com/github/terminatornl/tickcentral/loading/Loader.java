@@ -14,7 +14,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.AbstractMap;
+import java.util.LinkedList;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.jar.JarFile;
 import java.util.regex.Matcher;
@@ -33,10 +35,9 @@ public class Loader {
 
 	public Loader(){
 		loader = ((LaunchClassLoader) getClass().getClassLoader());
-		LinkedList<File> potentialModFiles = new LinkedList<>();
-		findTransformersInJarFiles(potentialModFiles);
+		findTransformersInJarFiles();
 		if(System.getProperty("net.minecraftforge.gradle.GradleStart.csvDir") != null){
-			findTransformersInDeobfuscatedEnvironment(potentialModFiles);
+			findTransformersInDeobfuscatedEnvironment();
 		}
 		suppliers.sort(Map.Entry.comparingByKey());
 		if(suppliers.size() > 0){
@@ -79,8 +80,8 @@ public class Loader {
 		return list;
 	}
 
-	private void findTransformersInDeobfuscatedEnvironment(List<File> foundFiles){
-		TickCentral.LOGGER.info("We're in a deobfuscated environment! Looking for -loadable.txt files");
+	private void findTransformersInDeobfuscatedEnvironment(){
+		TickCentral.LOGGER.info("We're in a deobfuscated environment! Looking for " + TickCentral.NAME + "-loadable.txt files");
 
 		InputStream stream = getClass().getClassLoader().getResourceAsStream(TickCentral.NAME+"-loadable.txt");
 		if(stream != null){
@@ -96,7 +97,7 @@ public class Loader {
 		}
 	}
 
-	private void findTransformersInJarFiles(List<File> foundFiles){
+	private void findTransformersInJarFiles(){
 		try{
 			String fullPath = URLDecoder.decode(Loader.class.getProtectionDomain().getCodeSource().getLocation().getFile(), StandardCharsets.UTF_8.name());
 			Pattern pattern = Pattern.compile("^(?:.+:)?(.+)!.*$");
@@ -119,8 +120,6 @@ public class Loader {
 			if(potentialMods == null){
 				throw new IllegalStateException("modsDir.listFiles() returned null! Attempted to index: " + modsDirectory);
 			}
-
-			Collections.addAll(foundFiles, potentialMods);
 
 			for (File file : potentialMods) {
 				JarFile jar = new JarFile(file);

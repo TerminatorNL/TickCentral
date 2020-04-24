@@ -18,8 +18,8 @@ public class Config {
 	public boolean SHOW_FORCED_LOADING = false;
 	public int FILE_COUNT = 0;
 
-	public File FOLDER = new File("config", TickCentral.NAME);
-	public File CONFIG_FILE = new File(FOLDER, "config.cfg");
+	public final File FOLDER = new File("config", TickCentral.NAME);
+	public final File CONFIG_FILE = new File(FOLDER, "config.cfg");
 
 	public Config() {
 		try {
@@ -57,6 +57,7 @@ public class Config {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	public void save() throws IOException {
 		HashMap<String, String> CURRENTS = new HashMap<>();
 		CURRENTS.put("SHOW_FORCED_LOADING", String.valueOf(SHOW_FORCED_LOADING));

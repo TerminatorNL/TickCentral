@@ -55,8 +55,9 @@ public class Utilities {
 		}
 	}
 
-	public static void convertTargetInstruction(String targetOwner, String targetName, String targetDesc, String newOwner, String newName, InsnList instructions) {
+	public static boolean convertTargetInstruction(String targetOwner, String targetName, String targetDesc, String newOwner, String newName, InsnList instructions) {
 		Iterator<AbstractInsnNode> iterator = instructions.iterator();
+		boolean dirty = false;
 		while(iterator.hasNext()){
 			AbstractInsnNode node = iterator.next();
 			switch (node.getOpcode()){
@@ -68,23 +69,27 @@ public class Utilities {
 					if(methodNode.owner.equals(targetOwner) && methodNode.name.equals(targetName) && methodNode.desc.equals(targetDesc)){
 						methodNode.name = newName;
 						methodNode.owner = newOwner;
+						dirty = true;
 					}
-					break;
 			}
 		}
+		return dirty;
 	}
 
-	public static void convertSuperInstructions(String targetName, String targetDesc, String newName, InsnList instructions) {
+	public static boolean convertSuperInstructions(String targetName, String targetDesc, String newName, InsnList instructions) {
 		Iterator<AbstractInsnNode> iterator = instructions.iterator();
+		boolean dirty = false;
 		while(iterator.hasNext()){
 			AbstractInsnNode node = iterator.next();
 			if (node.getOpcode() == Opcodes.INVOKESPECIAL) {
 				MethodInsnNode methodNode = (MethodInsnNode) node;
 				if (methodNode.name.equals(targetName) && methodNode.desc.equals(targetDesc)) {
 					methodNode.name = newName;
+					dirty = true;
 				}
 			}
 		}
+		return dirty;
 	}
 
 	public static boolean usesMethodInstruction(int opcode, String targetOwner, String targetName, String targetDesc, InsnList instructions) {
