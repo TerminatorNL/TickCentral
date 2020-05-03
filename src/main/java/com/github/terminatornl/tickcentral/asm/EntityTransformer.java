@@ -83,6 +83,10 @@ public class EntityTransformer implements IClassTransformer {
 
 			MethodNode newUpdateTick = null;
 			for (MethodNode method : classNode.methods) {
+				if((method.access & Opcodes.ACC_ABSTRACT) != 0){
+					//Skip abstract methods.
+					continue;
+				}
 				if (ONUPDATE_TICK_METHOD.getKey().equals(method.name) && ONUPDATE_TICK_METHOD.getValue().equals(method.desc)) {
 					newUpdateTick = Utilities.CopyMethodAppearance(method);
 					newUpdateTick.instructions = new InsnList();

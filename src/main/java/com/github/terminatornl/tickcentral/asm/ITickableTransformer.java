@@ -88,6 +88,10 @@ public class ITickableTransformer implements IClassTransformer {
 			/* ANY CLASS THAT ACTUALLY IMPLEMENTS IT */
 			MethodNode newUpdateTick = null;
 			for (MethodNode method : classNode.methods) {
+				if((method.access & Opcodes.ACC_ABSTRACT) != 0){
+					//Skip abstract methods.
+					continue;
+				}
 				if (UPDATE_METHOD.getKey().equals(method.name) && UPDATE_METHOD.getValue().equals(method.desc)) {
 					newUpdateTick = Utilities.CopyMethodAppearance(method);
 					newUpdateTick.instructions = new InsnList();
