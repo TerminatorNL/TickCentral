@@ -64,9 +64,9 @@ public class Loader {
 	 * Returns a new list containing all the classes of class transformers that have to be executed as late as possible
 	 * @return a list of classtransformers
 	 */
-	public LinkedList<Class<? extends IClassTransformer>> getLastClassTransformersTypes(){
-		LinkedList<Class<? extends IClassTransformer>> list = new LinkedList<>();
-		suppliers.forEach(e -> list.addAll(e.getValue().getLastTransformers()));
+	public LinkedList<Map.Entry<Class<? extends IClassTransformer>, Integer>> getLastClassTransformersTypes(){
+		LinkedList<Map.Entry<Class<? extends IClassTransformer>, Integer>> list = new LinkedList<>();
+		suppliers.forEach(e -> list.addAll(e.getValue().getPrioritizedLastTransformers()));
 		return list;
 	}
 

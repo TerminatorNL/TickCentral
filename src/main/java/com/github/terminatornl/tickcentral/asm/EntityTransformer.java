@@ -24,18 +24,6 @@ public class EntityTransformer implements IClassTransformer {
 	@Override
 	public byte[] transform(String name, String transformedName, byte[] basicClass) {
 		try {
-
-			if (basicClass == null) {
-				return null;
-			}
-
-			ClassReader reader = new ClassReader(basicClass);
-
-			if (ClassSniffer.isInstanceOf(reader, ENTITY_CLASS_OBF) == false) {
-				return basicClass;
-			}
-
-			boolean dirty = false;
 			if (ONUPDATE_TICK_METHOD == null) {
 				/* Find the method to target. We base this off one method calling the other which refers to a constant, where the caller is our target.*/
 				ClassNode classNode = ClassSniffer.performOnSource(ENTITY_CLASS_OBF, k -> {
@@ -69,7 +57,14 @@ public class EntityTransformer implements IClassTransformer {
 					throw new RuntimeException();
 				}
 			}
-
+			if (basicClass == null) {
+				return null;
+			}
+			ClassReader reader = new ClassReader(basicClass);
+			if (ClassSniffer.isInstanceOf(reader, ENTITY_CLASS_OBF) == false) {
+				return basicClass;
+			}
+			boolean dirty = false;
 			String className = reader.getClassName();
 
 			if(TickCentral.CONFIG.DEBUG){

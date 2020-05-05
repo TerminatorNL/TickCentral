@@ -4,6 +4,7 @@ import com.github.terminatornl.tickcentral.asm.*;
 import com.github.terminatornl.tickcentral.core.Config;
 import com.github.terminatornl.tickcentral.loading.Loader;
 import net.minecraft.launchwrapper.IClassTransformer;
+import net.minecraftforge.fml.common.asm.transformers.ModAPITransformer;
 import net.minecraftforge.fml.common.asm.transformers.TerminalTransformer;
 import net.minecraftforge.fml.relauncher.IFMLCallHook;
 import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin;
@@ -11,6 +12,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nullable;
+import java.util.AbstractMap;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -62,14 +64,15 @@ public class TickCentral implements IFMLLoadingPlugin, IFMLCallHook {
 		return list.toArray(new String[0]);
 	}
 
-	public Collection<Class<? extends IClassTransformer>> getPrioritizedASMTransformers() {
-		List<Class<? extends IClassTransformer>> list = LOADER.getLastClassTransformersTypes();
+	public Collection<Map.Entry<Class<? extends IClassTransformer>,Integer>> getPrioritizedASMTransformers() {
+		List<Map.Entry<Class<? extends IClassTransformer>,Integer>> list = LOADER.getLastClassTransformersTypes();
 
-		list.add(BlockTransformer.class);
-		list.add(ITickableTransformer.class);
-		list.add(EntityTransformer.class);
-		list.add(HubAPITransformer.class);
-		list.add(TerminalTransformer.class);
+		list.add(new AbstractMap.SimpleEntry<>(BlockTransformer.class, 1000));
+		list.add(new AbstractMap.SimpleEntry<>(ITickableTransformer.class, 1002));
+		list.add(new AbstractMap.SimpleEntry<>(EntityTransformer.class, 1004));
+		list.add(new AbstractMap.SimpleEntry<>(TerminalTransformer.class, 14000));
+		list.add(new AbstractMap.SimpleEntry<>(HubAPITransformer.class, 15000));
+		list.add(new AbstractMap.SimpleEntry<>(ModAPITransformer.class, Integer.MAX_VALUE));
 
 		return list;
 	}

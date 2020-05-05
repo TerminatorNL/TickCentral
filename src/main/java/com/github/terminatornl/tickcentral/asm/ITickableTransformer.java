@@ -24,15 +24,6 @@ public class ITickableTransformer implements IClassTransformer {
 	@Override
 	public byte[] transform(String name, String transformedName, byte[] basicClass) {
 		try {
-			if (basicClass == null) {
-				return null;
-			}
-			ClassReader reader = new ClassReader(basicClass);
-
-			if (ClassSniffer.isInstanceOf(reader, INTERFACE_CLASS_OBF) == false) {
-				return basicClass;
-			}
-
 			/* THE INTERFACE ITSELF */
 			if (UPDATE_METHOD == null) {
 				ClassNode classNode = ClassSniffer.performOnSource(INTERFACE_CLASS_OBF, k -> {
@@ -48,6 +39,14 @@ public class ITickableTransformer implements IClassTransformer {
 				}
 				MethodNode method = classNode.methods.get(0);
 				UPDATE_METHOD = new AbstractMap.SimpleEntry<>(FMLDeobfuscatingRemapper.INSTANCE.mapMethodName(classNode.name,method.name,method.desc), FMLDeobfuscatingRemapper.INSTANCE.mapDesc(method.desc));
+			}
+			if (basicClass == null) {
+				return null;
+			}
+			ClassReader reader = new ClassReader(basicClass);
+
+			if (ClassSniffer.isInstanceOf(reader, INTERFACE_CLASS_OBF) == false) {
+				return basicClass;
 			}
 
 			boolean dirty = false;

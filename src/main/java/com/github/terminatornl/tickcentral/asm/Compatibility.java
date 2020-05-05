@@ -4,12 +4,12 @@ import com.github.terminatornl.tickcentral.TickCentral;
 import net.minecraft.launchwrapper.IClassTransformer;
 import net.minecraft.launchwrapper.LaunchClassLoader;
 import net.minecraftforge.fml.common.asm.ASMTransformerWrapper;
-import net.minecraftforge.fml.common.asm.transformers.ModAPITransformer;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 public class Compatibility{
 
@@ -35,10 +35,10 @@ public class Compatibility{
 
 	public static class OrderedArrayList extends ArrayList<IClassTransformer>{
 
-		private final Collection<Class<? extends IClassTransformer>> bias;
+		private final Collection<Map.Entry<Class<? extends IClassTransformer>,Integer>> bias;
 		private final Field transformerField;
 
-		public OrderedArrayList(List<IClassTransformer> list, Collection<Class<? extends IClassTransformer>> bias) throws NoSuchFieldException {
+		public OrderedArrayList(List<IClassTransformer> list, Collection<Map.Entry<Class<? extends IClassTransformer>,Integer>> bias) throws NoSuchFieldException {
 			super(list);
 			this.bias = bias;
 			transformerField = ASMTransformerWrapper.TransformerWrapper.class.getDeclaredField("parent");
@@ -77,18 +77,12 @@ public class Compatibility{
 				}
 				int r = 0;
 
-				if(one instanceof ModAPITransformer){
-					r += 10;
-				}else if(two instanceof ModAPITransformer){
-					r += 10;
-				}
-
-				for (Class<?> b : bias) {
-					if(b.isAssignableFrom(one.getClass())){
-						r++;
+				for (Map.Entry<Class<? extends IClassTransformer>, Integer> b : bias) {
+					if(b.getKey().isAssignableFrom(one.getClass())){
+						r = r + b.getValue();
 					}
-					if(b.isAssignableFrom(two.getClass())){
-						r--;
+					if(b.getKey().isAssignableFrom(two.getClass())){
+						r = r - b.getValue();
 					}
 				}
 				return r;

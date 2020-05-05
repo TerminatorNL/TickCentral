@@ -1,14 +1,17 @@
 package com.github.terminatornl.tickcentral.api;
 
 import com.github.terminatornl.tickcentral.TickCentral;
+import net.minecraft.launchwrapper.Launch;
 import net.minecraft.launchwrapper.LaunchClassLoader;
 import net.minecraftforge.fml.common.asm.transformers.deobf.FMLDeobfuscatingRemapper;
+import org.apache.commons.io.IOUtils;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.ClassNode;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
@@ -132,6 +135,12 @@ public class ClassSniffer {
 
 	public static <R> R performOnSource(String source, Function<ClassReader, R> callable) throws IOException, ClassNotFoundException {
 		byte[] data = TickCentral.LOADER.getClassLoader().getClassBytes(FMLDeobfuscatingRemapper.INSTANCE.unmap(source));
+		if(data == null){
+			URL resource = Launch.classLoader.getResource(source + ".class");
+			if(resource != null){
+				data = IOUtils.toByteArray(resource);
+			}
+		}
 		if (data == null) {
 			throw new ClassNotFoundException("Unable to find class: " + source + " (" + FMLDeobfuscatingRemapper.INSTANCE.unmap(source) + ")");
 		}

@@ -28,18 +28,6 @@ public class BlockTransformer implements IClassTransformer {
 	@Override
 	public byte[] transform(String name, String transformedName, byte[] basicClass) {
 		try {
-			if (basicClass == null) {
-				return null;
-			}
-			ClassReader reader = new ClassReader(basicClass);
-			if (ClassSniffer.isInstanceOf(reader, BLOCK_CLASS_OBF) == false) {
-				return basicClass;
-			}
-			String className = reader.getClassName();
-			if (TickCentral.CONFIG.DEBUG) {
-				TickCentral.LOGGER.info("Block found: " + className + " (" + transformedName + ")");
-			}
-			boolean dirty = false;
 			if (RANDOM_TICK_METHOD == null || UPDATE_TICK_METHOD == null) {
 				/* Find the method to target. We base this off a java Random at the fourth position, and there are two identical methods */
 				ClassNode classNode = ClassSniffer.performOnSource(BLOCK_CLASS_OBF, k -> {
@@ -57,7 +45,7 @@ public class BlockTransformer implements IClassTransformer {
 					method.desc = FMLDeobfuscatingRemapper.INSTANCE.mapMethodDesc(method.desc);
 					String[] descSplit = method.desc.split(";");
 					if (descSplit.length > 3 && descSplit[3].equals("Ljava/util/Random") && descSplit[descSplit.length - 1].equals(")V")) {
-						TickCentral.LOGGER.info("Potential method found: " + className + " -> " + method.name + method.desc);
+						TickCentral.LOGGER.info("Potential method found: " + classNode.name + " -> " + method.name + method.desc);
 
 						if (potentialMethods.contains(method.desc)) {
 							targetDescription = method.desc;
@@ -100,6 +88,19 @@ public class BlockTransformer implements IClassTransformer {
 					}
 				}
 			}
+			if (basicClass == null) {
+				return null;
+			}
+			ClassReader reader = new ClassReader(basicClass);
+			if (ClassSniffer.isInstanceOf(reader, BLOCK_CLASS_OBF) == false) {
+				return basicClass;
+			}
+			String className = reader.getClassName();
+			if (TickCentral.CONFIG.DEBUG) {
+				TickCentral.LOGGER.info("Block found: " + className + " (" + transformedName + ")");
+			}
+			boolean dirty = false;
+
 			ClassNode classNode = new ClassNode();
 			reader.accept(classNode, 0);
 

@@ -6,9 +6,7 @@ import net.minecraftforge.fml.relauncher.IFMLCallHook;
 import net.minecraftforge.fml.relauncher.Side;
 
 import javax.annotation.Nonnull;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Must have a constructor without arguments.
@@ -30,10 +28,25 @@ public interface TransformerSupplier extends IFMLCallHook {
 	/**
 	 * @return all the transformers that will be added to forge. Call order is _not_ preserved.
 	 * These transformers are called last in the entire transformation process (Even after mixin)
+	 * This will default to priority 500. Please use {@link #getPrioritizedLastTransformers()}
 	 */
 	@Nonnull
+	@Deprecated
 	default Collection<Class<? extends IClassTransformer>> getLastTransformers(){
 		return Collections.emptyList();
+	}
+
+	/**
+	 * @return all the transformers that will be added to forge. Call order is _not_ preserved.
+	 * These transformers are called last in the entire transformation process (Even after mixin)
+	 */
+	@Nonnull
+	default Collection<Map.Entry<Class<? extends IClassTransformer>, Integer>> getPrioritizedLastTransformers(){
+		LinkedList<Map.Entry<Class<? extends IClassTransformer>, Integer>> transformers = new LinkedList<>();
+		for (Class<? extends IClassTransformer> lastTransformer : this.getLastTransformers()) {
+			transformers.add(new AbstractMap.SimpleEntry<>(lastTransformer, 500));
+		}
+		return transformers;
 	}
 
 	/**
