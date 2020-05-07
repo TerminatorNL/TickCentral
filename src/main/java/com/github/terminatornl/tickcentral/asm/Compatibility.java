@@ -4,8 +4,8 @@ import com.github.terminatornl.tickcentral.TickCentral;
 import net.minecraft.launchwrapper.IClassTransformer;
 import net.minecraft.launchwrapper.LaunchClassLoader;
 import net.minecraftforge.fml.common.asm.ASMTransformerWrapper;
+import net.minecraftforge.fml.common.asm.transformers.*;
 
-import javax.annotation.Nonnull;
 import java.lang.reflect.Field;
 import java.util.*;
 
@@ -51,36 +51,26 @@ public class Compatibility {
 
 
 		/**
-		 * Runs all transformers on a class the same way forge would.
-		 * To prevent circularity errors, you must supply Transformers to exclude.
+		 * Runs all transformers on a class as if it was completely transformed by forge.
 		 */
-		private static final ThreadLocal<HashSet<Class<? extends IClassTransformer>>> ACTIVE_TRANSFORMERS = ThreadLocal.withInitial(HashSet::new);
-		public final byte[] transform(String name, String transformedName, byte[] basicClass, @Nonnull Collection<Class<? extends IClassTransformer>> exclude) {
-			HashSet<Class<? extends IClassTransformer>> excludedTransformers = ACTIVE_TRANSFORMERS.get();
-			excludedTransformers.addAll(exclude);
+		public final byte[] transformAsPureFML(String name, String transformedName, byte[] basicClass) {
 			Iterator<IClassTransformer> it = super.iterator();
 			LOOP:
 			while (it.hasNext()) {
 				IClassTransformer transformer = it.next();
-
-				if (transformer instanceof ASMTransformerWrapper.TransformerWrapper) {
-					try {
-						transformer = (IClassTransformer) transformerField.get(transformer);
-					} catch (IllegalAccessException e) {
-						throw new RuntimeException(e);
-					}
-				}
-
-				for (Class<? extends IClassTransformer> excluded : exclude) {
-					if(excluded.isAssignableFrom(transformer.getClass())){
-						continue LOOP;
-					}
+				boolean allowed
+						 = transformer instanceof PatchingTransformer
+						|| transformer instanceof SideTransformer
+						|| transformer instanceof SoundEngineFixTransformer
+						|| transformer instanceof DeobfuscationTransformer
+						|| transformer instanceof AccessTransformer
+						|| transformer instanceof FieldRedirectTransformer
+						|| transformer instanceof TerminalTransformer
+						|| transformer instanceof ModAPITransformer;
+				if (allowed == false) {
+					continue;
 				}
 				basicClass = transformer.transform(name, transformedName, basicClass);
-			}
-			excludedTransformers.removeAll(exclude);
-			if(excludedTransformers.size() == 0){
-				ACTIVE_TRANSFORMERS.remove();
 			}
 			return basicClass;
 		}

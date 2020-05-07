@@ -2,7 +2,6 @@ package com.github.terminatornl.tickcentral.api;
 
 import com.github.terminatornl.tickcentral.TickCentral;
 import com.github.terminatornl.tickcentral.asm.Compatibility;
-import net.minecraft.launchwrapper.IClassTransformer;
 import net.minecraft.launchwrapper.Launch;
 import net.minecraft.launchwrapper.LaunchClassLoader;
 import net.minecraftforge.fml.common.asm.transformers.deobf.FMLDeobfuscatingRemapper;
@@ -11,11 +10,9 @@ import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.ClassNode;
 
-import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.URL;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
@@ -151,7 +148,7 @@ public class ClassSniffer {
 		return callable.apply(new ClassReader(data));
 	}
 
-	public static <R> R performOnMappedSource(String source, Function<ClassReader, R> callable, @Nonnull Collection<Class<? extends IClassTransformer>> excluded) throws IOException, ClassNotFoundException {
+	public static <R> R performOnMappedSource(String source, Function<ClassReader, R> callable) throws IOException, ClassNotFoundException {
 		String obfName = FMLDeobfuscatingRemapper.INSTANCE.unmap(source.replace('.', '/')).replace('/','.');
 		String transformedName = FMLDeobfuscatingRemapper.INSTANCE.map(source.replace('.','/')).replace('/', '.');
 		byte[] data = TickCentral.LOADER.getClassLoader().getClassBytes(obfName);
@@ -164,7 +161,7 @@ public class ClassSniffer {
 		if (data == null) {
 			throw new ClassNotFoundException("Unable to find class: " + source + " (" + transformedName + ")");
 		}
-		return callable.apply(new ClassReader(Compatibility.OrderedArrayList.INSTANCE.transform(obfName, transformedName, data, excluded)));
+		return callable.apply(new ClassReader(Compatibility.OrderedArrayList.INSTANCE.transformAsPureFML(obfName, transformedName, data)));
 	}
 
 
