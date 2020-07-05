@@ -92,7 +92,7 @@ public class BlockTransformer implements IClassTransformer {
 				return null;
 			}
 			ClassReader reader = new ClassReader(basicClass);
-			if (ClassSniffer.isInstanceOf(reader, BLOCK_CLASS_OBF) == false) {
+			if (ClassSniffer.hasMixinAnnotation(reader) || !ClassSniffer.isInstanceOf(reader, BLOCK_CLASS_OBF)) {
 				return basicClass;
 			}
 			String className = reader.getClassName();
