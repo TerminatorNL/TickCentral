@@ -122,11 +122,15 @@ public class Loader {
 			}
 
 			for (File file : potentialMods) {
-				JarFile jar = new JarFile(file);
-				ZipEntry transformerEntry = jar.getEntry(TickCentral.NAME + "-loadable.txt");
-				if(transformerEntry != null){
-					BufferedReader reader = new BufferedReader(new InputStreamReader(jar.getInputStream(transformerEntry)));
-					parseLoadables(reader, file);
+				try {
+					JarFile jar = new JarFile(file);
+					ZipEntry transformerEntry = jar.getEntry(TickCentral.NAME + "-loadable.txt");
+					if (transformerEntry != null) {
+						BufferedReader reader = new BufferedReader(new InputStreamReader(jar.getInputStream(transformerEntry)));
+						parseLoadables(reader, file);
+					}
+				} catch (Throwable e) {
+					TickCentral.LOGGER.warn("Failed to load {}-loadable.txt from File '{}', Ignoring..",TickCentral.NAME, file, e);
 				}
 			}
 		}catch (Throwable e){
