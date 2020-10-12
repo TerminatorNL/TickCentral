@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="EnderCore-1.12.2-0.5.76">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/run_server_obf/mods/EnderCore-1.12.2-0.5.76.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

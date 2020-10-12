@@ -80,7 +80,6 @@ public class ClassSniffer {
 
 	public static boolean isInstanceOf(ClassReader reader, String obfuscated, boolean disallowMixinSupers) throws IOException {
 		String className = FMLDeobfuscatingRemapper.INSTANCE.unmap(reader.getClassName());
-		obfuscated = FMLDeobfuscatingRemapper.INSTANCE.unmap(obfuscated);
 		if (isKnownImplementor(className, obfuscated)) {
 			return true;
 		}
