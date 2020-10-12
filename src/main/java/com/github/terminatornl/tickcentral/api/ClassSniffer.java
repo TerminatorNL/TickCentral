@@ -80,6 +80,7 @@ public class ClassSniffer {
 
 	public static boolean isInstanceOf(ClassReader reader, String obfuscated, boolean disallowMixinSupers) throws IOException {
 		String className = FMLDeobfuscatingRemapper.INSTANCE.unmap(reader.getClassName());
+		obfuscated = FMLDeobfuscatingRemapper.INSTANCE.unmap(obfuscated);
 		if (isKnownImplementor(className, obfuscated)) {
 			return true;
 		}
@@ -116,6 +117,7 @@ public class ClassSniffer {
 					}
 				}
 				if (isInstanceOf(superReader, obfuscated, disallowMixinSupers)) {
+					addKnownImplementor(className, obfuscated);
 					return true;
 				}
 			}
@@ -125,8 +127,11 @@ public class ClassSniffer {
 				byte[] ifaceData = TickCentral.LOADER.getClassLoader().getClassBytes(FMLDeobfuscatingRemapper.INSTANCE.unmap(iface));
 				if (ifaceData != null) {
 					if (isInstanceOf(new ClassReader(ifaceData), obfuscated, disallowMixinSupers)) {
+						addKnownImplementor(className, obfuscated);
 						return true;
 					}
+				}else{
+					TickCentral.LOGGER.debug("Unable to get an interface referenced in resource: " + iface + " (" + FMLDeobfuscatingRemapper.INSTANCE.map(iface) + ") It is referenced in " + className + " (" + FMLDeobfuscatingRemapper.INSTANCE.map(className) + ") This could be indicative of a problem, but it probably isn't.");
 				}
 			}
 		}

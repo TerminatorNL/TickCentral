@@ -100,6 +100,7 @@ public class ITickableTransformer implements IClassTransformer {
 					newUpdateTick.instructions.add(new InsnNode(Opcodes.RETURN));
 					method.name = TRUE_ITICKABLE_UPDATE;
 					dirty = true;
+					break;
 				}
 			}
 			if(newUpdateTick != null){

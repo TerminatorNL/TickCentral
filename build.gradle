@@ -1,4 +1,7 @@
 import groovy.swing.SwingBuilder
+import net.minecraftforge.gradle.common.task.SignJar
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
 
 buildscript {
     repositories {
@@ -12,23 +15,58 @@ buildscript {
 }
 apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'maven-publish'
+apply plugin: 'signing'
 
 sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
 
+//Fricking heck! I have to manually update the file too!
 version = "3.1"
 group = "com.github.terminatornl.tickcentral" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "TickCentral"
 
 def taskNames = project.gradle.startParameter.taskNames
-if(!taskNames.contains("sign")){
-    version = "$version-testing"
-}
 if (taskNames.contains("jar") || taskNames.find {it.toLowerCase().startsWith("publish")}) {
     version = "$version-dev"
 }
 
+String password
+if (taskNames.contains("build") || taskNames.contains("install")){
+    if (System.console() != null) {
+        password = new String(System.console().readPassword("Keystore password"))
+    } else {
+        new SwingBuilder().edt {
+            dialog(modal: true,
+                    title: 'Keystore password',
+                    alwaysOnTop: true,
+                    resizable: false,
+                    locationRelativeTo: null,
+                    pack: true,
+                    show: true
+            ) {
+                vbox {
+                    label(text: "                                                ")
+                    input = passwordField()
+                    button(defaultButton: true, text: 'OK', actionPerformed: {
+                        password = new String(input.password);
+                        dispose();
+                    })
+                }
+            }
+        }
+
+        if (password == null || password.size() == 0) {
+            //throw new GradleException("No password supplied")
+            version = "$version-unsigned"
+        }
+    }
+}
+
 dependencies {
     minecraft 'net.minecraftforge:forge:1.12.2-14.23.5.2854'
+}
+
+processResources {
+    expand project.properties
 }
 
 minecraft {
@@ -78,85 +116,35 @@ task installToObfServer << {
     }
 }
 
-task sign << {
-
-}
-
 jar {
     manifest {
         attributes([
-                "Specification-Title": "examplemod",
-                "Specification-Vendor": "examplemodsareus",
+                "Specification-Title": project.name,
+                "Specification-Vendor": "Terminator_NL",
                 "Specification-Version": "${version}", // We are version 1 of ourselves
                 "Implementation-Title": project.name,
                 "Implementation-Version": "${version}",
-                "Implementation-Vendor" :"examplemodsareus",
+                "Implementation-Vendor" :"Terminator_NL",
                 "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
                 'FMLCorePlugin': 'com.github.terminatornl.tickcentral.TickCentral'
         ])
     }
 }
 
-/*
-task signJar(type: SignJar, dependsOn: reobfJar) {
-    onlyIf {
-        project.gradle.startParameter.taskNames.contains("sign")
-    }
-    if (project.gradle.startParameter.taskNames.contains("sign")) {
-
-
-        String password
-
-        if (password == null) {
-            if (System.console() != null) {
-                password = new String(System.console().readPassword("Keystore password"))
-            } else {
-                new SwingBuilder().edt {
-                    dialog(modal: true,
-                            title: 'Keystore password',
-                            alwaysOnTop: true,
-                            resizable: false,
-                            locationRelativeTo: null,
-                            pack: true,
-                            show: true
-                    ) {
-                        vbox {
-                            label(text: "                                                ")
-                            input = passwordField()
-                            button(defaultButton: true, text: 'OK', actionPerformed: {
-                                password = new String(input.password);
-                                dispose();
-                            })
-                        }
-                    }
-                }
-            }
-        }
-
-        if (password == null || password.size() < 1) {
-            throw new GradleException("No password supplied")
-        }
-
-        alias = "TerminatorNL"
-        keyStore = "keystore.jks"
-        storePass = password
-        keyPass = password
-
-        inputFile = jar.archivePath
-        outputFile = jar.archivePath
-    }
+task signJar(type: SignJar, dependsOn: jar) {
+    keyStore = "keystore.jks"
+    alias = "TerminatorNL"
+    storePass = password
+    keyPass = password
+    inputFile = jar.archivePath
+    outputFile = jar.archivePath
 }
-*/
+
+if (password != null && password.size() > 0) {
+    build.dependsOn signJar
+}
+
 installToObfServer.dependsOn build
-//build.dependsOn signJar
 
-publishing { // for the publishToMavenLocal task
-    publications {
-        mavenJava(MavenPublication) {
-            from components.java
-        }
-    }
-    repositories {
-        mavenLocal()
-    }
-}
+build.dependsOn processResources
+//build.dependsOn signJar
