@@ -113,7 +113,7 @@ public class BlockTransformer implements IClassTransformer {
 					continue;
 				}
 				if (UPDATE_TICK_METHOD.getKey().equals(method.name) && UPDATE_TICK_METHOD.getValue().equals(method.desc)) {
-					newUpdateTick = Utilities.CopyMethodAppearanceWithoutFinal(method);
+					newUpdateTick = Utilities.CopyMethodAppearanceAndStripOtherFromFinal(method);
 					newUpdateTick.instructions = new InsnList();
 					newUpdateTick.instructions.add(new FieldInsnNode(Opcodes.GETSTATIC, "com/github/terminatornl/tickcentral/api/TickHub", "INTERCEPTOR", "Lcom/github/terminatornl/tickcentral/api/TickInterceptor;"));
 					newUpdateTick.instructions.add(new VarInsnNode(Opcodes.ALOAD, 0));
@@ -126,7 +126,7 @@ public class BlockTransformer implements IClassTransformer {
 					method.name = TRUE_UPDATE_TICK_NAME;
 					dirty = true;
 				} else if (RANDOM_TICK_METHOD.getKey().equals(method.name) && RANDOM_TICK_METHOD.getValue().equals(method.desc)) {
-					newRandomTick = Utilities.CopyMethodAppearanceWithoutFinal(method);
+					newRandomTick = Utilities.CopyMethodAppearanceAndStripOtherFromFinal(method);
 					newRandomTick.instructions = new InsnList();
 					newRandomTick.instructions.add(new FieldInsnNode(Opcodes.GETSTATIC, "com/github/terminatornl/tickcentral/api/TickHub", "INTERCEPTOR", "Lcom/github/terminatornl/tickcentral/api/TickInterceptor;"));
 					newRandomTick.instructions.add(new VarInsnNode(Opcodes.ALOAD, 0));

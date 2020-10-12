@@ -15,9 +15,10 @@ public class Utilities {
 	 * @param node the methodnode
 	 * @return a shiny new imitator
 	 */
-	public static MethodNode CopyMethodAppearanceWithoutFinal(MethodNode node){
+	public static MethodNode CopyMethodAppearanceAndStripOtherFromFinal(MethodNode node){
+		node.access &= ~Opcodes.ACC_FINAL;
 		MethodNode newNode = new MethodNode();
-		newNode.access = (node.access | Opcodes.ACC_FINAL) ^ Opcodes.ACC_FINAL;
+		newNode.access = node.access;
 		newNode.name = node.name;
 		newNode.desc = node.desc;
 		newNode.signature = node.signature;

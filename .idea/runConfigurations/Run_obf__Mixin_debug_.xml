@@ -1,7 +1,7 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Run obf (Mixin debug)" type="JarApplication">
     <log_file alias="debug" path="$PROJECT_DIR$/run_server_obf/logs/debug.log" show_all="true" skipped="false" />
-    <option name="JAR_PATH" value="$PROJECT_DIR$/run_server_obf/forge-1.12.2-14.23.5.2838-universal.jar" />
+    <option name="JAR_PATH" value="$PROJECT_DIR$/run_server_obf/forge-1.12.2-14.23.5.2854.jar" />
     <option name="VM_PARAMETERS" value="-Dmixin.debug.export=true -Dmixin.debug=true" />
     <option name="PROGRAM_PARAMETERS" value="nogui" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/run_server_obf/" />

@@ -2,16 +2,18 @@ import groovy.swing.SwingBuilder
 
 buildscript {
     repositories {
+        maven { url = 'https://files.minecraftforge.net/maven' }
         jcenter()
-        maven { url = "https://files.minecraftforge.net/maven" }
+        mavenCentral()
     }
     dependencies {
-        classpath 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
+        classpath 'net.minecraftforge.gradle:ForgeGradle:3.+'
     }
 }
-apply plugin: 'net.minecraftforge.gradle.forge'
+apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'maven-publish'
 
+sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
 
 version = "3.1"
 group = "com.github.terminatornl.tickcentral" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
@@ -25,43 +27,43 @@ if (taskNames.contains("jar") || taskNames.find {it.toLowerCase().startsWith("pu
     version = "$version-dev"
 }
 
-sourceCompatibility = targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
-compileJava {
-    sourceCompatibility = targetCompatibility = '1.8'
+dependencies {
+    minecraft 'net.minecraftforge:forge:1.12.2-14.23.5.2854'
 }
 
 minecraft {
-    ///home/predator/.gradle/caches/minecraft/de/oceanlabs/mcp/mcp
-    version = "1.12.2-14.23.5.2847"
-    runDir = "run"
-
-    replaceIn "TickCentral.java"
-    replace '${version}', project.version
-    // the mappings can be changed at any time, and must be in the following format.
-    // snapshot_YYYYMMDD   snapshot are built nightly.
-    // stable_#            stables are built at the discretion of the MCP team.
+    // The mappings can be changed at any time, and must be in the following format.
+    // snapshot_YYYYMMDD   Snapshot are built nightly.
+    // stable_#            Stables are built at the discretion of the MCP team.
     // Use non-default mappings at your own risk. they may not always work.
-    // simply re-run your setup task after changing the mappings to update your workspace.
-    mappings = "snapshot_20171003"
+    // Simply re-run your setup task after changing the mappings to update your workspace.
+    //mappings channel: 'snapshot', version: '20171003-1.12'
+    mappings channel: 'snapshot', version: '20171003-1.12'
     // makeObfSourceJar = false // an Srg named sources jar is made by default. uncomment this to disable.
-}
 
-processResources {
-    // this will ensure that this task is redone when the versions change.
-    inputs.property "version", project.version
-    inputs.property "mcversion", project.minecraft.version
+    // accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
 
-    // replace stuff in mcmod.info, nothing else
-    from(sourceSets.main.resources.srcDirs) {
-        include 'mcmod.info'
+    // Default run configurations.
+    // These can be tweaked, removed, or duplicated as needed.
+    runs {
+        client {
+            workingDirectory project.file('run')
 
-        // replace version and mcversion
-        expand 'version': project.version, 'mcversion': project.minecraft.version
-    }
+            // Recommended logging data for a userdev environment
+            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
 
-    // copy everything else except the mcmod.info
-    from(sourceSets.main.resources.srcDirs) {
-        exclude 'mcmod.info'
+            // Recommended logging level for the console
+            property 'forge.logging.console.level', 'debug'
+        }
+
+        server {
+
+            // Recommended logging data for a userdev environment
+            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+
+            // Recommended logging level for the console
+            property 'forge.logging.console.level', 'debug'
+        }
     }
 }
 
@@ -81,11 +83,21 @@ task sign << {
 }
 
 jar {
-    manifest.attributes(
-            'FMLCorePlugin': 'com.github.terminatornl.tickcentral.TickCentral'
-    )
+    manifest {
+        attributes([
+                "Specification-Title": "examplemod",
+                "Specification-Vendor": "examplemodsareus",
+                "Specification-Version": "${version}", // We are version 1 of ourselves
+                "Implementation-Title": project.name,
+                "Implementation-Version": "${version}",
+                "Implementation-Vendor" :"examplemodsareus",
+                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
+                'FMLCorePlugin': 'com.github.terminatornl.tickcentral.TickCentral'
+        ])
+    }
 }
 
+/*
 task signJar(type: SignJar, dependsOn: reobfJar) {
     onlyIf {
         project.gradle.startParameter.taskNames.contains("sign")
@@ -134,8 +146,9 @@ task signJar(type: SignJar, dependsOn: reobfJar) {
         outputFile = jar.archivePath
     }
 }
+*/
 installToObfServer.dependsOn build
-build.dependsOn signJar
+//build.dependsOn signJar
 
 publishing { // for the publishToMavenLocal task
     publications {
