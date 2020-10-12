@@ -57,7 +57,7 @@ public class ITickableTransformer implements IClassTransformer {
 
 			if (transformedName.equals(INTERFACE_CLASS_NON_OBF)) {
 				MethodNode method = classNode.methods.get(0);
-				MethodNode newUpdateTick = Utilities.CopyMethodAppearance(method);
+				MethodNode newUpdateTick = Utilities.CopyMethodAppearanceWithoutFinal(method);
 				newUpdateTick.access = newUpdateTick.access - Opcodes.ACC_ABSTRACT;
 
 				newUpdateTick.instructions = new InsnList();
@@ -92,7 +92,7 @@ public class ITickableTransformer implements IClassTransformer {
 					continue;
 				}
 				if (UPDATE_METHOD.getKey().equals(method.name) && UPDATE_METHOD.getValue().equals(method.desc)) {
-					newUpdateTick = Utilities.CopyMethodAppearance(method);
+					newUpdateTick = Utilities.CopyMethodAppearanceWithoutFinal(method);
 					newUpdateTick.instructions = new InsnList();
 					newUpdateTick.instructions.add(new FieldInsnNode(Opcodes.GETSTATIC, "com/github/terminatornl/tickcentral/api/TickHub", "INTERCEPTOR", "Lcom/github/terminatornl/tickcentral/api/TickInterceptor;"));
 					newUpdateTick.instructions.add(new VarInsnNode(Opcodes.ALOAD, 0));

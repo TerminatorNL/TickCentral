@@ -83,7 +83,7 @@ public class EntityTransformer implements IClassTransformer {
 					continue;
 				}
 				if (ONUPDATE_TICK_METHOD.getKey().equals(method.name) && ONUPDATE_TICK_METHOD.getValue().equals(method.desc)) {
-					newUpdateTick = Utilities.CopyMethodAppearance(method);
+					newUpdateTick = Utilities.CopyMethodAppearanceWithoutFinal(method);
 					newUpdateTick.instructions = new InsnList();
 					newUpdateTick.instructions.add(new FieldInsnNode(Opcodes.GETSTATIC, "com/github/terminatornl/tickcentral/api/TickHub", "INTERCEPTOR", "Lcom/github/terminatornl/tickcentral/api/TickInterceptor;"));
 					newUpdateTick.instructions.add(new VarInsnNode(Opcodes.ALOAD, 0));
