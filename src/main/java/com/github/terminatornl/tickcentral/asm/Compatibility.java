@@ -36,6 +36,7 @@ public class Compatibility {
 		public static OrderedArrayList INSTANCE;
 		private final Collection<Map.Entry<Class<? extends IClassTransformer>, Integer>> bias;
 		private final Field transformerField;
+		private boolean needsSorting = true;
 
 		public OrderedArrayList(List<IClassTransformer> list, Collection<Map.Entry<Class<? extends IClassTransformer>, Integer>> bias) throws NoSuchFieldException {
 			super(list);
@@ -78,14 +79,22 @@ public class Compatibility {
 		@Override
 		public final boolean add(IClassTransformer transformer) {
 			boolean val = super.add(transformer);
-			sortSelf();
+			needsSorting = true;
 			return val;
 		}
 
 		@Override
 		public final void add(int index, IClassTransformer transformer) {
 			super.add(index, transformer);
-			sortSelf();
+			needsSorting = true;
+		}
+
+		// Called from LaunchClassLoader::runTransformers
+		@Override
+		public Iterator<IClassTransformer> iterator() {
+			if (needsSorting)
+				sortSelf();
+			return super.iterator();
 		}
 
 		private void sortSelf() {
@@ -116,6 +125,7 @@ public class Compatibility {
 				}
 				return r;
 			});
+			needsSorting = false;
 		}
 	}
 }
