@@ -33,7 +33,7 @@ public class TickCentral implements IFMLLoadingPlugin, IFMLCallHook {
 	public static final String NAME = "TickCentral";
 	public static final String MODID = "tickcentral";
 	public static final Logger LOGGER = LogManager.getLogger(NAME);
-	public static final String VERSION = "3.1";
+	public static final String VERSION = "3.2";
 	public static final Loader LOADER = new Loader();
 	public static TickCentral INSTANCE;
 	public static Map<String, Object> FML_DATA;
