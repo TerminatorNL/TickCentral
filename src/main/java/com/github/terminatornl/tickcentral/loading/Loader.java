@@ -87,8 +87,9 @@ public class Loader {
 		if(stream != null){
 			BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
 			try {
+				// https://stackoverflow.com/a/27149287/14900042
 				//noinspection ConstantConditions
-				parseLoadables(reader, new File(getClass().getClassLoader().getResource(TickCentral.NAME+"-loadable.txt").toURI()));
+				parseLoadables(reader, new File(getClass().getClassLoader().getResource(TickCentral.NAME+"-loadable.txt").toExternalForm()));
 			} catch (Throwable e) {
 				throw new RuntimeException(e);
 			}
